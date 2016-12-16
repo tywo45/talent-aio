@@ -1,0 +1,48 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>talent-aio-server</artifactId>
+	<name>talent-aio-server</name>
+
+	<parent>
+		<groupId>com.talent</groupId>
+		<artifactId>talent-parent</artifactId>
+		<version>1.0.0.ken</version>
+		<relativePath>../../../parent/pom.xml</relativePath>
+	</parent>
+
+	<dependencies>
+		
+		<dependency>
+			<groupId>com.talent</groupId>
+			<artifactId>talent-aio-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		
+	</dependencies>
+	<build>
+		<plugins>
+			
+		</plugins>
+	</build>
+
+</project>

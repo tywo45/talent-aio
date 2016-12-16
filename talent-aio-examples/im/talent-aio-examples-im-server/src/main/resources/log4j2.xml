@@ -1,0 +1,19 @@
+<Configuration status="warn">
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="[%-5p] %d %c - %m%n" />
+		</Console>
+		<File name="File" fileName="/logs/ixxm/p/log4j/log4j2.log">
+			<PatternLayout pattern="%m%n" />
+		</File>
+		<RollingFile name="RollingFile" fileName="/logs/ixxm/p/log4j/log4j2.log"
+			filePattern="/logs/ixxm/p/log4j/app-%d{MM-dd-yyyy}-%i.log.gz">
+			<PatternLayout pattern="[%-5p] %d %c - %m%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="25 KB" />
+			</Policies>
+			<DefaultRolloverStrategy max="20"/>
+		</RollingFile>
+	</Appenders>
+</Configuration>

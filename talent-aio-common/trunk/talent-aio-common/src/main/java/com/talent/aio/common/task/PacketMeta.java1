@@ -1,0 +1,61 @@
+/**
+ * **************************************************************************
+ *
+ * @说明: 
+ * @项目名称: talent-aio-common
+ *
+ * @author: tanyaowu 
+ * @创建时间: 2016年11月15日 下午2:34:12
+ *
+ * **************************************************************************
+ */
+package com.talent.aio.common.task;
+
+import com.talent.aio.common.intf.Packet;
+
+/**
+ * 
+ * @author tanyaowu 
+ * @创建时间 2016年11月15日 下午2:34:12
+ *
+ * @操作列表
+ *  编号	| 操作时间	| 操作人员	 | 操作说明
+ *  (1) | 2016年11月15日 | tanyaowu | 新建类
+ *
+ */
+public class PacketMeta <P extends Packet>
+{
+    private P packet = null;
+//    private int packetLenght = -1;
+    private int neededLength = -1;
+
+//    public int getPacketLenght()
+//    {
+//        return packetLenght;
+//    }
+
+//    public void setPacketLenght(int packetLenght)
+//    {
+//        this.packetLenght = packetLenght;
+//    }
+
+    public P getPacket()
+    {
+        return packet;
+    }
+
+    public void setPacket(P packet)
+    {
+        this.packet = packet;
+    }
+
+    public int getNeededLength()
+    {
+        return neededLength;
+    }
+
+    public void setNeededLength(int neededLength)
+    {
+        this.neededLength = neededLength;
+    }
+}
