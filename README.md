@@ -2,6 +2,8 @@
   talent-aio: 让天下没有难开发的即时通讯
 </h3>
 
+<h1>github的暂时不维护了，请到开源中国的码云来：<a href="https://git.oschina.net/tywo45/talent-aio" target="_blank">https://git.oschina.net/tywo45/talent-aio</a></h1>
+
 <h4>
   talent-aio官网上线了，地址：<a href="http://www.talent-aio.com/talent-aio" target="_blank">http://www.talent-aio.com/talent-aio</a>，上面有大家期待已久的入门文档。
 </h4>
