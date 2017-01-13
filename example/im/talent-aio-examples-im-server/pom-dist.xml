@@ -1,0 +1,104 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>talent-aio-examples-im-server</artifactId>
+	<name>talent-aio-examples-im-server</name>
+
+	<parent>
+		<groupId>com.talent-aio</groupId>
+		<artifactId>talent-parent</artifactId>
+		<version>0.6.8-alpha</version>
+		<relativePath>../../../parent/pom.xml</relativePath>
+	</parent>
+
+	<dependencies>
+		
+		<dependency>
+			<groupId>com.talent-aio</groupId>
+			<artifactId>talent-aio-server</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.talent-aio</groupId>
+			<artifactId>talent-aio-examples-im-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+
+
+
+		
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- The configuration of maven-jar-plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<!-- The configuration of the plugin -->
+				<configuration>
+					<!-- Configuration of the archiver -->
+					<archive>
+						<!-- 生成的jar中，不要包含pom.xml和pom.properties这两个文件 -->
+						<addMavenDescriptor>true</addMavenDescriptor>
+						<!-- Manifest specific configuration -->
+						<manifest>
+							<!-- 是否要把第三方jar放到manifest的classpath中 -->
+							<addClasspath>true</addClasspath>
+							<!-- 生成的manifest中classpath的前缀，因为要把第三方jar放到lib目录下，所以classpath的前缀是lib/ -->
+							<classpathPrefix>lib/</classpathPrefix>
+							<!-- 应用的main class -->
+							<mainClass>com.talent.aio.examples.im.server.ImServerStarter</mainClass>
+						</manifest>
+						
+						<manifestEntries>
+							<Class-Path>./config/</Class-Path>  <!-- 把./config/加到class-path中 -->
+						</manifestEntries>
+					</archive>
+
+					<!-- 过滤掉不希望包含在jar中的文件 -->
+					<excludes>
+						<exclude>**/*.properties</exclude>
+						<exclude>**/*.xml</exclude>
+						<exclude>**/*.xml1</exclude>
+					</excludes>
+					<!-- <finalName>talent-aio-im-server</finalName>  -->
+				</configuration>
+			</plugin>
+
+			<!-- The configuration of maven-assembly-plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<!-- The configuration of the plugin -->
+				<configuration>
+					<!-- Specifies the configuration file of the assembly plugin -->
+					<descriptors>
+						<descriptor>script/runnable.xml</descriptor> <!--描述文件路径 -->
+					</descriptors>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id> <!--名字任意 -->
+						<phase>package</phase>  <!-- 绑定到package生命周期阶段上 -->
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
