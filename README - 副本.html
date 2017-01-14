@@ -6,6 +6,10 @@
 	<li><h4>简 介</h4>
 		 <strong>talent-aio</strong>是基于java aio实现的即时通讯框架，源于作者另一个久经考验的talent-nio框架，但在易用性、性能及代码可读性方面又远远超越了talent-nio（最好的东西才拿来分享，所以talent-nio并不会开源）。官网地址：<a href="http://www.talent-aio.com/talent-aio" target="_blank">http://www.talent-aio.com/talent-aio</a>，上面有大家期待已久的<a href="http://www.talent-aio.com/talent-aio/quickstart.html" target="_blank">入门文档</a>。同类框架有netty和mina。
 	</li>
+	
+	<li><h4>愿 景</h4>
+		成为即时通讯界的<strong>JFinal框架</strong>（简洁易用又不失灵活），并且以本框架为基础开发出众多可以开箱即用的应用。
+	</li>
 		 
 	<li><h4>应用场景</h4>
 		IM、实现各种网络应用层协议（如http、ftp等公有协议，也可以自定义私有协议）、实时监控、RPC等

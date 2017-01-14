@@ -1,7 +1,7 @@
 call mvn -f pom-dist.xml clean install
 
-rd ..\..\..\dist\talent-aio-examples-im-server-0.6.8-alpha /s /q
+rd ..\..\..\dist\talent-aio-examples-im-server-1.0.0-RELEASE /s /q
 
-copy target\talent-aio-examples-im-server-0.6.8-alpha.zip ..\..\..\dist\talent-aio-examples-im-server-0.6.8-alpha.zip
+copy target\talent-aio-examples-im-server-1.0.0-RELEASE.zip ..\..\..\dist\talent-aio-examples-im-server-1.0.0-RELEASE.zip
 
 pause

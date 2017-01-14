@@ -1,2 +1,2 @@
-cd dist\talent-aio-examples-im-client-0.6.8-alpha
+cd dist\talent-aio-examples-im-client-1.0.0-RELEASE
 call startup.bat
