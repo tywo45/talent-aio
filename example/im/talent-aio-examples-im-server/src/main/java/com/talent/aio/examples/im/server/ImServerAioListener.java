@@ -11,15 +11,13 @@
  */
 package com.talent.aio.examples.im.server;
 
-import java.nio.channels.AsynchronousSocketChannel;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talent.aio.common.ChannelContext;
 import com.talent.aio.examples.im.common.CommandStat;
 import com.talent.aio.examples.im.common.ImPacket;
-import com.talent.aio.server.AioServer;
+import com.talent.aio.examples.im.common.ImSessionContext;
 import com.talent.aio.server.intf.ServerAioListener;
 
 /**
@@ -32,9 +30,11 @@ import com.talent.aio.server.intf.ServerAioListener;
  *  (1) | 2016年12月16日 | tanyaowu | 新建类
  *
  */
-public class ImServerAioListener implements ServerAioListener<Object, ImPacket, Object>
+public class ImServerAioListener implements ServerAioListener<ImSessionContext, ImPacket, Object>
 {
-private static Logger log = LoggerFactory.getLogger(ImServerAioListener.class);
+	@SuppressWarnings("unused")
+	private static Logger log = LoggerFactory.getLogger(ImServerAioListener.class);
+
 	/**
 	 * 
 	 *
@@ -58,22 +58,6 @@ private static Logger log = LoggerFactory.getLogger(ImServerAioListener.class);
 	}
 
 	/** 
-	 * @see com.talent.aio.examples.im.common.ImAioListener#onBeforeClose(com.talent.aio.common.ChannelContext, java.lang.Throwable, java.lang.String)
-	 * 
-	 * @param channelContext
-	 * @param throwable
-	 * @param remark
-	 * @重写人: tanyaowu
-	 * @重写时间: 2016年12月16日 下午5:52:24
-	 * 
-	 */
-	@Override
-	public void onBeforeClose(ChannelContext<Object, ImPacket, Object> channelContext, Throwable throwable, String remark)
-	{
-		log.info("即将关闭连接:{}", channelContext);
-	}
-
-	/** 
 	 * @see com.talent.aio.server.intf.ServerAioListener#onAfterAccepted(java.nio.channels.AsynchronousSocketChannel, com.talent.aio.server.AioServer)
 	 * 
 	 * @param asynchronousSocketChannel
@@ -83,25 +67,18 @@ private static Logger log = LoggerFactory.getLogger(ImServerAioListener.class);
 	 * @重写时间: 2016年12月20日 上午11:03:45
 	 * 
 	 */
-	@Override
-	public boolean onAfterAccepted(AsynchronousSocketChannel asynchronousSocketChannel, AioServer<Object, ImPacket, Object> aioServer)
-	{
-		return true;
-	}
+//	@Override
+//	public boolean onAfterAccepted(AsynchronousSocketChannel asynchronousSocketChannel, AioServer<ImSessionContext, ImPacket, Object> aioServer)
+//	{
+//		return true;
+//	}
 
-	/** 
-	 * @see com.talent.aio.common.intf.AioListener#onAfterConnected(com.talent.aio.common.ChannelContext)
-	 * 
-	 * @param channelContext
-	 * @return
-	 * @重写人: tanyaowu
-	 * @重写时间: 2016年12月20日 上午11:08:44
-	 * 
-	 */
 	@Override
-	public boolean onAfterConnected(ChannelContext<Object, ImPacket, Object> channelContext)
+	public void onAfterConnected(ChannelContext<ImSessionContext, ImPacket, Object> channelContext, boolean isConnected, boolean isReconnect)
 	{
-		return true;
+		ImSessionContext imSessionContext = new ImSessionContext();
+		channelContext.setSessionContext(imSessionContext);
+		return;
 	}
 
 	/** 
@@ -114,14 +91,18 @@ private static Logger log = LoggerFactory.getLogger(ImServerAioListener.class);
 	 * 
 	 */
 	@Override
-	public void onBeforeSent(ChannelContext<Object, ImPacket, Object> channelContext, ImPacket packet)
+	public void onAfterSent(ChannelContext<ImSessionContext, ImPacket, Object> channelContext, ImPacket packet, boolean isSentSuccess)
 	{
-		CommandStat.getCount(packet.getCommand()).sent.incrementAndGet();
+		if (isSentSuccess)
+		{
+			CommandStat.getCount(packet.getCommand()).sent.incrementAndGet();
+		}
 		
+
 	}
 
 	/** 
-	 * @see com.talent.aio.common.intf.AioListener#onAfterDecoded(com.talent.aio.common.ChannelContext, com.talent.aio.common.intf.Packet, int)
+	 * @see com.talent.aio.common.intf.AioListener#onAfterReceived(com.talent.aio.common.ChannelContext, com.talent.aio.common.intf.Packet, int)
 	 * 
 	 * @param channelContext
 	 * @param packet
@@ -131,11 +112,25 @@ private static Logger log = LoggerFactory.getLogger(ImServerAioListener.class);
 	 * 
 	 */
 	@Override
-	public void onAfterDecoded(ChannelContext<Object, ImPacket, Object> channelContext, ImPacket packet, int packetSize)
+	public void onAfterReceived(ChannelContext<ImSessionContext, ImPacket, Object> channelContext, ImPacket packet, int packetSize)
 	{
 		CommandStat.getCount(packet.getCommand()).received.incrementAndGet();
-		
 	}
 
+	/** 
+	 * @see com.talent.aio.common.intf.AioListener#onAfterClose(com.talent.aio.common.ChannelContext, java.lang.Throwable, java.lang.String)
+	 * 
+	 * @param channelContext
+	 * @param throwable
+	 * @param remark
+	 * @重写人: tanyaowu
+	 * @重写时间: 2017年2月1日 上午11:03:11
+	 * 
+	 */
+	@Override
+	public void onAfterClose(ChannelContext<ImSessionContext, ImPacket, Object> channelContext, Throwable throwable, String remark, boolean isRemove)
+	{
+
+	}
 
 }

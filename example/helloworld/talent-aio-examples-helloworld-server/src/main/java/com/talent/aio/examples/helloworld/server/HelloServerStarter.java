@@ -35,15 +35,15 @@ public class HelloServerStarter
 	static AioServer<Object, HelloPacket, Object> aioServer = null; //可以为空
 	static ServerAioHandler<Object, HelloPacket, Object> aioHandler = null;
 	static ServerAioListener<Object, HelloPacket, Object> aioListener = null;
-	static String ip = null;
-	static int port = com.talent.aio.examples.helloworld.common.Const.PORT;
+	static String serverIp = null;
+	static int serverPort = com.talent.aio.examples.helloworld.common.Const.PORT;
 
 	public static void main(String[] args) throws IOException
 	{
 		aioHandler = new HelloServerAioHandler();
 		aioListener = null; //可以为空
-		serverGroupContext = new ServerGroupContext<>(ip, port, aioHandler, aioListener);
+		serverGroupContext = new ServerGroupContext<>(aioHandler, aioListener);
 		aioServer = new AioServer<>(serverGroupContext);
-		aioServer.start();
+		aioServer.start(serverIp, serverPort);
 	}
 }

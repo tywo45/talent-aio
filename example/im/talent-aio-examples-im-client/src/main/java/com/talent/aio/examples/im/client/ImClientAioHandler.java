@@ -11,6 +11,7 @@
  */
 package com.talent.aio.examples.im.client;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,14 +21,18 @@ import org.slf4j.LoggerFactory;
 
 import com.talent.aio.client.intf.ClientAioHandler;
 import com.talent.aio.common.ChannelContext;
+import com.talent.aio.common.GroupContext;
 import com.talent.aio.common.exception.AioDecodeException;
 import com.talent.aio.examples.im.client.handler.AuthRespHandler;
 import com.talent.aio.examples.im.client.handler.ChatRespHandler;
-import com.talent.aio.examples.im.client.handler.ImBsAioHandlerIntf;
+import com.talent.aio.examples.im.client.handler.HandshakeRespHandler;
+import com.talent.aio.examples.im.client.handler.ImAioHandlerIntf;
 import com.talent.aio.examples.im.client.handler.JoinRespHandler;
-import com.talent.aio.examples.im.common.Command;
 import com.talent.aio.examples.im.common.CommandStat;
 import com.talent.aio.examples.im.common.ImPacket;
+import com.talent.aio.examples.im.common.ImSessionContext;
+import com.talent.aio.examples.im.common.packets.Command;
+import com.talent.aio.examples.im.common.utils.GzipUtils;
 
 /**
  * 
@@ -39,16 +44,17 @@ import com.talent.aio.examples.im.common.ImPacket;
  *  (1) | 2016年11月18日 | tanyaowu | 新建类
  *
  */
-public class ImClientAioHandler implements ClientAioHandler<Object, ImPacket, Object>
+public class ImClientAioHandler implements ClientAioHandler<ImSessionContext, ImPacket, Object>
 {
 	private static Logger log = LoggerFactory.getLogger(ImClientAioHandler.class);
 
-	private static Map<Short, ImBsAioHandlerIntf> handlerMap = new HashMap<>();
+	private static Map<Command, ImAioHandlerIntf> handlerMap = new HashMap<>();
 	static
 	{
-		handlerMap.put(Command.AUTH_RESP, new AuthRespHandler());
-		handlerMap.put(Command.CHAT_RESP, new ChatRespHandler());
-		handlerMap.put(Command.JOIN_GROUP_RESP, new JoinRespHandler());
+		handlerMap.put(Command.COMMAND_AUTH_RESP, new AuthRespHandler());
+		handlerMap.put(Command.COMMAND_CHAT_RESP, new ChatRespHandler());
+		handlerMap.put(Command.COMMAND_JOIN_GROUP_RESP, new JoinRespHandler());
+		handlerMap.put(Command.COMMAND_HANDSHAKE_RESP, new HandshakeRespHandler());
 	}
 
 	/**
@@ -84,10 +90,10 @@ public class ImClientAioHandler implements ClientAioHandler<Object, ImPacket, Ob
 	 * 
 	 */
 	@Override
-	public Object handler(ImPacket packet, ChannelContext<Object, ImPacket, Object> channelContext) throws Exception
+	public Object handler(ImPacket packet, ChannelContext<ImSessionContext, ImPacket, Object> channelContext) throws Exception
 	{
-		Short command = packet.getCommand();
-		ImBsAioHandlerIntf handler = handlerMap.get(command);
+		Command command = packet.getCommand();
+		ImAioHandlerIntf handler = handlerMap.get(command);
 		if (handler != null)
 		{
 			Object obj = handler.handler(packet, channelContext);
@@ -112,34 +118,89 @@ public class ImClientAioHandler implements ClientAioHandler<Object, ImPacket, Ob
 	 * 
 	 */
 	@Override
-	public ByteBuffer encode(ImPacket packet, ChannelContext<Object, ImPacket, Object> channelContext)
+	public ByteBuffer encode(ImPacket packet, GroupContext<ImSessionContext, ImPacket, Object> groupContext, ChannelContext<ImSessionContext, ImPacket, Object> channelContext)
 	{
+		if (packet.getCommand() == Command.COMMAND_HEARTBEAT_REQ)
+		{
+			ByteBuffer buffer = ByteBuffer.allocate(1);
+			buffer.put(ImPacket.HEARTBEAT_BYTE);
+			return buffer;
+		}
+		if (packet.getCommand() == Command.COMMAND_HANDSHAKE_REQ)
+		{
+			ByteBuffer buffer = ByteBuffer.allocate(1);
+			buffer.put(ImPacket.HANDSHAKE_BYTE);
+			return buffer;
+		}
+
 		byte[] body = packet.getBody();
 		int bodyLen = 0;
+		boolean isCompress = false;
+		boolean is4ByteLength = false;
 		if (body != null)
 		{
 			bodyLen = body.length;
+
+			if (bodyLen > 200)
+			{
+				try
+				{
+					byte[] gzipedbody = GzipUtils.gZip(body);
+					if (gzipedbody.length < body.length)
+					{
+						log.error("压缩前:{}, 压缩后:{}", body.length, gzipedbody.length);
+						body = gzipedbody;
+						packet.setBody(gzipedbody);
+						bodyLen = gzipedbody.length;
+						isCompress = true;
+					}
+				} catch (IOException e)
+				{
+					log.error(e.getMessage(), e);
+				}
+			}
+
+			if (bodyLen > Short.MAX_VALUE)
+			{
+				is4ByteLength = true;
+			}
 		}
 
-		int allLen = ImPacket.HEADER_LENGHT + bodyLen;
+		int allLen = packet.calcHeaderLength(is4ByteLength) + bodyLen;
+
 		ByteBuffer buffer = ByteBuffer.allocate(allLen);
-		buffer.order(channelContext.getGroupContext().getByteOrder());
+		buffer.order(groupContext.getByteOrder());
 
-		buffer.put(ImPacket.VERSION);
+		byte firstbyte = ImPacket.encodeCompress(ImPacket.VERSION, isCompress);
+		firstbyte = ImPacket.encodeHasSynSeq(firstbyte, packet.getSynSeq() > 0);
+		firstbyte = ImPacket.encode4ByteLength(firstbyte, is4ByteLength);
+		//		String bstr = Integer.toBinaryString(firstbyte);
+		//		log.error("二进制:{}",bstr);
 
-		buffer.putInt(bodyLen);
+		buffer.put(firstbyte);
+		buffer.put((byte)packet.getCommand().getNumber());// TODO 此处需要验证
+		 
 
-		buffer.putShort(packet.getCommand());
+		//GzipUtils
+
+		if (is4ByteLength)
+		{
+			buffer.putInt(bodyLen);
+		} else
+		{
+			buffer.putShort((short) bodyLen);
+		}
 
 		if (packet.getSynSeq() != null && packet.getSynSeq() > 0)
 		{
 			buffer.putInt(packet.getSynSeq());
-		} else
-		{
-			buffer.putInt(0);
 		}
-
-		buffer.putInt(0);
+		//		else
+		//		{
+		//			buffer.putInt(0);
+		//		}
+		//
+		//		buffer.putInt(0);
 
 		if (body != null)
 		{
@@ -148,6 +209,8 @@ public class ImClientAioHandler implements ClientAioHandler<Object, ImPacket, Ob
 		return buffer;
 	}
 
+	private static ImPacket handshakeRespPacket = new ImPacket(Command.COMMAND_HANDSHAKE_RESP);
+	
 	/** 
 	 * @see com.talent.aio.common.intf.AioHandler#decode(java.nio.ByteBuffer)
 	 * 
@@ -159,46 +222,74 @@ public class ImClientAioHandler implements ClientAioHandler<Object, ImPacket, Ob
 	 * 
 	 */
 	@Override
-	public ImPacket decode(ByteBuffer buffer, ChannelContext<Object, ImPacket, Object> channelContext) throws AioDecodeException
+	public ImPacket decode(ByteBuffer buffer, ChannelContext<ImSessionContext, ImPacket, Object> channelContext) throws AioDecodeException
 	{
+		ImSessionContext imSessionContext = channelContext.getSessionContext();
+		byte firstbyte = buffer.get();
+		
+		if (!imSessionContext.isHandshaked())
+		{
+			if (ImPacket.HANDSHAKE_BYTE == firstbyte)
+			{
+				return handshakeRespPacket;
+			} else
+			{
+				throw new AioDecodeException("还没握手");
+			}
+		}
+		
+		buffer.position(buffer.position() - 1);//位置复元
+		
+		
 		int readableLength = buffer.limit() - buffer.position();
-		if (readableLength < ImPacket.HEADER_LENGHT)
+
+		int headerLength = ImPacket.LEAST_HEADER_LENGHT;
+		ImPacket imPacket = null;
+		firstbyte = buffer.get();
+		@SuppressWarnings("unused")
+		byte version = ImPacket.decodeVersion(firstbyte);
+		boolean isCompress = ImPacket.decodeCompress(firstbyte);
+		boolean hasSynSeq = ImPacket.decodeHasSynSeq(firstbyte);
+		boolean is4ByteLength = ImPacket.decode4ByteLength(firstbyte);
+		if (hasSynSeq)
+		{
+			headerLength += 4;
+		}
+		if (is4ByteLength)
+		{
+			headerLength += 2;
+		}
+		if (readableLength < headerLength)
 		{
 			return null;
 		}
-
-		ImPacket imPacket = null;
-
-		@SuppressWarnings("unused")
-		byte version = buffer.get();
-
-		int bodyLength = buffer.getInt();
+		Byte code = buffer.get();
+		Command command = Command.valueOf(code);
+		int bodyLength = 0;
+		if (is4ByteLength)
+		{
+			bodyLength = buffer.getInt();
+		} else
+		{
+			bodyLength = buffer.getShort();
+		}
 
 		if (bodyLength > ImPacket.MAX_LENGTH_OF_BODY || bodyLength < 0)
 		{
 			throw new AioDecodeException("bodyLength [" + bodyLength + "] is not right, remote:" + channelContext.getClientNode());
 		}
 
-		short command = buffer.getShort();
-
-		int seq = buffer.getInt();
-
-		@SuppressWarnings("unused")
-		int reserve = buffer.getInt();//保留字段
-
-		if (command < 0)
+		int seq = 0;
+		if (hasSynSeq)
 		{
-			throw new AioDecodeException("command [" + command + "] is not right");
+			seq = buffer.getInt();
 		}
 
-		Boolean printbodylength = Boolean.getBoolean("tt_nio_printbodylength");
-		if (printbodylength == true)
-		{
-			log.error("command:{}, bodylength:{}", command, bodyLength);
-		}
+		//		@SuppressWarnings("unused")
+		//		int reserve = buffer.getInt();//保留字段
 
 		//		PacketMeta<ImPacket> packetMeta = new PacketMeta<>();
-		int neededLength = ImPacket.HEADER_LENGHT + bodyLength;
+		int neededLength = headerLength + bodyLength;
 		int test = readableLength - neededLength;
 		if (test < 0) // 不够消息体长度(剩下的buffe组不了消息体)
 		{
@@ -207,8 +298,8 @@ public class ImClientAioHandler implements ClientAioHandler<Object, ImPacket, Ob
 		} else
 		{
 			imPacket = new ImPacket();
-			imPacket.setBodyLen(bodyLength);
 			imPacket.setCommand(command);
+
 			if (seq != 0)
 			{
 				imPacket.setSynSeq(seq);
@@ -218,7 +309,22 @@ public class ImClientAioHandler implements ClientAioHandler<Object, ImPacket, Ob
 			{
 				byte[] dst = new byte[bodyLength];
 				buffer.get(dst);
-				imPacket.setBody(dst);
+				if (isCompress)
+				{
+					try
+					{
+						byte[] unGzippedBytes = GzipUtils.unGZip(dst);
+						imPacket.setBody(unGzippedBytes);
+//						imPacket.setBodyLen(unGzippedBytes.length);
+					} catch (IOException e)
+					{
+						throw new AioDecodeException(e);
+					}
+				} else
+				{
+					imPacket.setBody(dst);
+//					imPacket.setBodyLen(dst.length);
+				}
 			}
 
 			//			packetMeta.setPacket(imPacket);
@@ -228,7 +334,7 @@ public class ImClientAioHandler implements ClientAioHandler<Object, ImPacket, Ob
 
 	}
 
-	private static ImPacket heartbeatPacket = new ImPacket(Command.HEARTBEAT_REQ);
+	private static ImPacket heartbeatPacket = new ImPacket(Command.COMMAND_HEARTBEAT_REQ);
 
 	/** 
 	 * @see com.talent.aio.client.intf.ClientAioHandler#heartbeatPacket()

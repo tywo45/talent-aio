@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!-- saved from url=(0041)http://v3.bootcss.com/examples/dashboard/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="tywo45@163.com">
+    <link rel="icon" href="./res/img/talent-aio.ico">
+	
+	<meta name="description" content="talent-aio是基于java aio实现的即时通讯框架，功能类似netty和mina，但极易掌握，不需要各种学习才能入门，只需要花上半天学习helloworld就能比较好地掌握并实现一个性能极好的即时应用，并且天生不会有粘包问题；talent-aio性能极好：可同时支持10万级tcp长连接，彻底甩开当年的c10K问题；每秒可收发处理138万以上条消息，每秒收发的消息大小可达137M以上，收发200万条消息，只需要1440毫秒" />
+	<meta name="keywords" content="java, rpc, aio, nio, 高性能, 即时通讯, 聊天, im, netty, mina, socket, tcp, tcp长连接" />
+
+
+    <title>talent-aio: 让天下没有难开发的即时通讯</title>
+
+	<link href="./res/highlight/Styles/shCore.css" rel="stylesheet" type="text/css" />
+	<link href="./res/highlight/Styles/shThemeEclipse.css" rel="stylesheet" type="text/css" />
+	
+    <!-- Bootstrap core CSS -->
+    <link href="./res/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="./res/doc.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <script src="./res/ie-emulation-modes-warning.js"></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+	
+	<style>
+  
+</style>
+	
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation" >
+      <div class="container">
+        <!--
+		<div class="navbar-header">
+          <a class="navbar-" href="#"><img src='./res/img/talent-aio.png' title='talent-aio: 让天下没有难开发的即时通讯'></a>
+        </div>
+		-->
+		
+		<div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar" id="nav_list_btn">
+          </button>
+          <a class="navbar-brand" href="./index.html">talent-aio 让天下没有难开发的即时通讯</a>
+        </div>		
+		
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right" id="nav_list">
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    
+      
+	  
+	  
+	  
+	  
+	 <div class="jumbotron">
+      <div class="container-fluid">
+        <div class="row" style='margin-top:10px;'>
+			<div class="col-md-6">
+				<div class="bs-callout bs-callout-info" role="alert" style="font-size:14pt;height:100px;">
+				  <h4>简 介</h4>
+				  <strong>talent-aio</strong>是基于java aio实现的即时通讯框架，功能类似netty和mina
+				</div>
+			</div>
+			
+			<div class="col-md-6">
+				<div class="bs-callout bs-callout-info" role="alert" style="font-size:14pt;height:100px;">
+				  <h4>应用场景</h4>
+				  IM、实现各种网络应用层协议、实时监控、RPC等
+				</div>
+			</div>
+		</div>
+	
+	
+		<div class="row" style=''>
+			<div class="col-md-6" style='height:300px'>
+				<div class="bs-callout bs-callout-info" style='height:420px;'>
+					<h4>特 点</h4>
+					<ul class="masthead-links" style="font-size:14pt;">
+					  <li>
+						<strong>极易掌握</strong>: 无需各种折腾，只需<strong>花上30分钟</strong><a href="./quickstart.html" target="_blank">学习helloworld</a>就能很好地掌握并实现一个性能极好的即时通讯应用
+					  </li>
+					  <li>
+						可同时支持<strong>10万级</strong>tcp长连接，彻底甩开业界当年的<strong>c10K</strong>烦恼
+					  </li>
+					  <li>
+						收发<strong>200万</strong>条消息(约<strong>137M</strong>)，只需要<strong>1440毫秒</strong>(windows7、i7、8g、群聊场景)
+					  </li>
+					  <li>
+						天生没有粘包问题
+					  </li>
+					  <li>
+						框架层面帮你检测心跳(tcp server)、发送心跳(tcp client)
+					  </li>
+					  <li>
+						可在框架层面帮你自动重连(tcp client)
+					  </li>
+					  <li>
+						框架层面支持绑定userid(用于用户关联)、绑定groupid(用于群聊)
+					  </li>
+					</ul>
+				</div>
+			</div>
+			
+			<div class="col-md-6">
+				<div class=" bs-callout bs-callout-info" style='height:420px;'>
+					<h4>案 例</h4>
+					<ul class="masthead-links" style="font-size:14pt;">
+					  <li>
+						某网管系统(管理数百台刀片服务器的系统)
+					  </li>
+					  <li>
+						某直播平台(视频直播+聊天)
+					  </li>
+					  <li>
+						某智能手表的数据采集系统
+					  </li>
+					  <li>
+						期待反馈... ...
+					  </li>
+					  
+					</ul>
+					
+					<h4>反馈方式</h4>
+					<ul class="masthead-links" style="font-size:14pt;">
+					  <li>
+						QQ群: 428058412<a href="http://shang.qq.com/wpa/qunwpa?idkey=95588b929b2832f606f4deb74a423d61257f3c08b9790ac57c29aebd09364459" target="_blank"><img src="http://pub.idqqimg.com/wpa/images/group.png" alt="talent-aio技术" title="talent-aio技术"></a>
+					  </li>
+					  <li>
+						微信(添加时请附带消息:<span style="color:red">talent-aio</span>): <img src="./res/img/wechat.jpg" style="width:200px;height:200px;" alt="个人微信号" class="img-circle">
+						
+					  </li>
+					  
+					  
+					  
+					</ul>
+				</div>
+			</div>
+			
+			
+		</div>
+		
+        
+      </div>
+    </div>
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="./res/jquery.min.js"></script>
+    <script src="./res/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="./res/ie10-viewport-bug-workaround.js"></script>
+	
+	<script type="text/javascript" src="./res/highlight/Scripts/shCore.js"></script>
+	<script type="text/javascript" src="./res/highlight/Scripts/shBrushJScript.js"></script>
+	<script type="text/javascript" src="./res/highlight/Scripts/shBrushJava.js"></script>
+	<script type="text/javascript" src="./res/highlight/Scripts/shBrushXml.js"></script>
+
+	
+	
+	<script type="text/javascript" src="./res/highlight/init.js"></script>
+	
+	<script type="text/javascript" language="javascript">   
+		
+	</script>
+  
+</body></html>

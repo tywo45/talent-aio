@@ -13,6 +13,8 @@ package com.talent.aio.common;
 
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * 
  * 
@@ -32,6 +34,10 @@ public class Node implements Comparable<Node>
 	public Node(String ip, int port)
 	{
 		super();
+		if (StringUtils.isBlank(ip) || "0:0:0:0:0:0:0:0".equals(ip))
+		{
+			ip = "0.0.0.0";
+		}
 
 		this.setIp(ip);
 		this.setPort(port);

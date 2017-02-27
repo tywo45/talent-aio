@@ -25,6 +25,7 @@ import com.talent.aio.client.intf.ClientAioListener;
 import com.talent.aio.common.ReconnConf;
 import com.talent.aio.common.intf.AioListener;
 import com.talent.aio.examples.im.common.ImPacket;
+import com.talent.aio.examples.im.common.ImSessionContext;
 
 /**
  * 
@@ -49,32 +50,27 @@ public class ImClientStarter
 	 * @创建时间:　2016年11月17日 下午5:59:24
 	 * 
 	 */
-	public ImClientStarter(String serverIp, int serverPort) throws IOException
+	public ImClientStarter() throws IOException
 	{
-		this.serverIp = serverIp;
-		this.serverPort = serverPort;
 		aioClientHandler = new ImClientAioHandler();
 		aioListener = new ImClientAioListener();
-		clientGroupContext = new ClientGroupContext<>(serverIp, serverPort, aioClientHandler, aioListener, reconnConf);
-//		clientGroupContext.setByteOrder(ByteOrder.LITTLE_ENDIAN);
+		clientGroupContext = new ClientGroupContext<>(aioClientHandler, aioListener, reconnConf);
 		clientGroupContext.setReadBufferSize(2048);
 		clientGroupContext.setByteOrder(ByteOrder.BIG_ENDIAN);
+		clientGroupContext.setEncodeCareWithChannelContext(true);
 		aioClient = new AioClient<>(clientGroupContext);
 	}
 
-	private String serverIp = null; //服务器的IP地址
 
-	private int serverPort = 0; //服务器的PORT
+	private AioClient<ImSessionContext, ImPacket, Object> aioClient;
 
-	private AioClient<Object, ImPacket, Object> aioClient;
+	private ClientGroupContext<ImSessionContext, ImPacket, Object> clientGroupContext = null;
 
-	private ClientGroupContext<Object, ImPacket, Object> clientGroupContext = null;
+	private ClientAioHandler<ImSessionContext, ImPacket, Object> aioClientHandler = null;
 
-	private ClientAioHandler<Object, ImPacket, Object> aioClientHandler = null;
-
-	private ClientAioListener<Object, ImPacket, Object> aioListener = null;
+	private ClientAioListener<ImSessionContext, ImPacket, Object> aioListener = null;
 	
-	private static ReconnConf<Object, ImPacket, Object> reconnConf = new ReconnConf<Object, ImPacket, Object>(5000L);
+	private static ReconnConf<ImSessionContext, ImPacket, Object> reconnConf = new ReconnConf<ImSessionContext, ImPacket, Object>(5000L);
 
 	//--------------
 
@@ -98,41 +94,9 @@ public class ImClientStarter
 	}
 
 	/**
-	 * @return the serverIp
-	 */
-	public String getServerIp()
-	{
-		return serverIp;
-	}
-
-	/**
-	 * @param serverIp the serverIp to set
-	 */
-	public void setServerIp(String serverIp)
-	{
-		this.serverIp = serverIp;
-	}
-
-	/**
-	 * @return the serverPort
-	 */
-	public int getServerPort()
-	{
-		return serverPort;
-	}
-
-	/**
-	 * @param serverPort the serverPort to set
-	 */
-	public void setServerPort(int serverPort)
-	{
-		this.serverPort = serverPort;
-	}
-
-	/**
 	 * @return the aioClient
 	 */
-	public AioClient<Object, ImPacket, Object> getAioClient()
+	public AioClient<ImSessionContext, ImPacket, Object> getAioClient()
 	{
 		return aioClient;
 	}
@@ -140,7 +104,7 @@ public class ImClientStarter
 	/**
 	 * @param aioClient the aioClient to set
 	 */
-	public void setAioClient(AioClient<Object, ImPacket, Object> aioClient)
+	public void setAioClient(AioClient<ImSessionContext, ImPacket, Object> aioClient)
 	{
 		this.aioClient = aioClient;
 	}
@@ -148,7 +112,7 @@ public class ImClientStarter
 	/**
 	 * @return the clientGroupContext
 	 */
-	public ClientGroupContext<Object, ImPacket, Object> getClientGroupContext()
+	public ClientGroupContext<ImSessionContext, ImPacket, Object> getClientGroupContext()
 	{
 		return clientGroupContext;
 	}
@@ -156,7 +120,7 @@ public class ImClientStarter
 	/**
 	 * @param clientGroupContext the clientGroupContext to set
 	 */
-	public void setClientGroupContext(ClientGroupContext<Object, ImPacket, Object> clientGroupContext)
+	public void setClientGroupContext(ClientGroupContext<ImSessionContext, ImPacket, Object> clientGroupContext)
 	{
 		this.clientGroupContext = clientGroupContext;
 	}
@@ -164,7 +128,7 @@ public class ImClientStarter
 	/**
 	 * @return the aioClientHandler
 	 */
-	public ClientAioHandler<Object, ImPacket, Object> getAioClientHandler()
+	public ClientAioHandler<ImSessionContext, ImPacket, Object> getAioClientHandler()
 	{
 		return aioClientHandler;
 	}
@@ -172,7 +136,7 @@ public class ImClientStarter
 	/**
 	 * @param aioClientHandler the aioClientHandler to set
 	 */
-	public void setAioClientHandler(ClientAioHandler<Object, ImPacket, Object> aioClientHandler)
+	public void setAioClientHandler(ClientAioHandler<ImSessionContext, ImPacket, Object> aioClientHandler)
 	{
 		this.aioClientHandler = aioClientHandler;
 	}
@@ -180,7 +144,7 @@ public class ImClientStarter
 	/**
 	 * @return the aioListener
 	 */
-	public AioListener<Object, ImPacket, Object> getAioListener()
+	public AioListener<ImSessionContext, ImPacket, Object> getAioListener()
 	{
 		return aioListener;
 	}
@@ -188,7 +152,7 @@ public class ImClientStarter
 	/**
 	 * @param aioListener the aioListener to set
 	 */
-	public void setAioListener(ClientAioListener<Object, ImPacket, Object> aioListener)
+	public void setAioListener(ClientAioListener<ImSessionContext, ImPacket, Object> aioListener)
 	{
 		this.aioListener = aioListener;
 	}

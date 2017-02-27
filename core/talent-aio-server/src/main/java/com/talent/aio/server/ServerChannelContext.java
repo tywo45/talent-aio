@@ -30,7 +30,7 @@ import com.talent.aio.common.intf.Packet;
  *  (1) | 2016年12月6日 | tanyaowu | 新建类
  *
  */
-public class ServerChannelContext<Ext, P extends Packet, R> extends ChannelContext<Ext, P, R>
+public class ServerChannelContext<SessionContext, P extends Packet, R> extends ChannelContext<SessionContext, P, R>
 {
 
 	/**
@@ -41,7 +41,7 @@ public class ServerChannelContext<Ext, P extends Packet, R> extends ChannelConte
 	 * @创建时间:　2016年12月6日 下午12:17:59
 	 * 
 	 */
-	public ServerChannelContext(GroupContext<Ext, P, R> groupContext, AsynchronousSocketChannel asynchronousSocketChannel)
+	public ServerChannelContext(GroupContext<SessionContext, P, R> groupContext, AsynchronousSocketChannel asynchronousSocketChannel)
 	{
 		super(groupContext, asynchronousSocketChannel);
 	}
@@ -57,7 +57,7 @@ public class ServerChannelContext<Ext, P extends Packet, R> extends ChannelConte
 	{}
 
 	/** 
-	 * @see com.talent.aio.common.ChannelContext#getClientNode(java.nio.channels.AsynchronousSocketChannel)
+	 * @see com.talent.aio.common.ChannelContext#createClientNode(java.nio.channels.AsynchronousSocketChannel)
 	 * 
 	 * @param asynchronousSocketChannel
 	 * @return
@@ -67,7 +67,7 @@ public class ServerChannelContext<Ext, P extends Packet, R> extends ChannelConte
 	 * 
 	 */
 	@Override
-	public Node getClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException
+	public Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException
 	{
 		InetSocketAddress inetSocketAddress = (InetSocketAddress) asynchronousSocketChannel.getRemoteAddress();
 		Node clientNode = new Node(inetSocketAddress.getHostString(), inetSocketAddress.getPort());

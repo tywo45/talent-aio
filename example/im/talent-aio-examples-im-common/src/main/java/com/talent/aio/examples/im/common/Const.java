@@ -25,15 +25,5 @@ public interface Const
 {
 	String authkey = "fdsfeofa";
 	
-	public static interface ChatType
-	{
-		/**
-		 * 公聊
-		 */
-		public static Integer pub = 1;
-		/**
-		 * 私聊
-		 */
-		public static Integer pri = 2;
-	}
+	
 }

@@ -3,7 +3,6 @@
  */
 package com.talent.aio.common.task;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -22,7 +21,7 @@ import com.talent.aio.common.threadpool.AbstractQueueRunnable;
  * @date 2012-08-09
  * 
  */
-public class HandlerRunnable<Ext, P extends Packet, R> extends AbstractQueueRunnable<P>
+public class HandlerRunnable<SessionContext, P extends Packet, R> extends AbstractQueueRunnable<P>
 {
 	private static final Logger log = LoggerFactory.getLogger(HandlerRunnable.class);
 
@@ -30,9 +29,9 @@ public class HandlerRunnable<Ext, P extends Packet, R> extends AbstractQueueRunn
 
 	// private String msgType = null;
 
-	private ChannelContext<Ext, P, R> channelContext = null;
+	private ChannelContext<SessionContext, P, R> channelContext = null;
 
-	public HandlerRunnable(ChannelContext<Ext, P, R> channelContext, Executor executor)
+	public HandlerRunnable(ChannelContext<SessionContext, P, R> channelContext, Executor executor)
 	{
 		super(executor);
 		this.setChannelContext(channelContext);
@@ -96,12 +95,12 @@ public class HandlerRunnable<Ext, P extends Packet, R> extends AbstractQueueRunn
 		{
 			try
 			{
-				GroupContext<Ext, P, R> groupContext = channelContext.getGroupContext();
+				GroupContext<SessionContext, P, R> groupContext = channelContext.getGroupContext();
 
 				Integer synSeq = packet.getSynSeq();
 				if (synSeq != null && synSeq > 0)
 				{
-					Syns<Ext, P, R> syns = channelContext.getGroupContext().getSyns();
+					Syns<SessionContext, P, R> syns = channelContext.getGroupContext().getSyns();
 					P initPacket = syns.remove(synSeq);
 					if (initPacket != null)
 					{
@@ -133,31 +132,22 @@ public class HandlerRunnable<Ext, P extends Packet, R> extends AbstractQueueRunn
 		return ret;
 	}
 
-	/**
-	 * 添加要处理的消息
-	 * 
-	 * @param packet
-	 */
-	public void addMsg(P packet)
-	{
-		//log.error("handler queue size:" + getMsgQueue().size());
-		getMsgQueue().add(packet);
-	}
+	
 
 	/**
 	 * 清空处理的队列消息
 	 */
 	public void clearMsgQueue()
 	{
-		getMsgQueue().clear();
+		msgQueue.clear();
 	}
 
-	public ChannelContext<Ext, P, R> getChannelContext()
+	public ChannelContext<SessionContext, P, R> getChannelContext()
 	{
 		return channelContext;
 	}
 
-	public void setChannelContext(ChannelContext<Ext, P, R> channelContext)
+	public void setChannelContext(ChannelContext<SessionContext, P, R> channelContext)
 	{
 		this.channelContext = channelContext;
 	}
@@ -197,9 +187,8 @@ public class HandlerRunnable<Ext, P extends Packet, R> extends AbstractQueueRunn
 	@Override
 	public void runTask()
 	{
-		ConcurrentLinkedQueue<P> queue = getMsgQueue();
 		P packet = null;
-		while ((packet = queue.poll()) != null)
+		while ((packet = msgQueue.poll()) != null)
 		{
 			doPacket(packet);
 		}

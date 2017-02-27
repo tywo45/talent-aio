@@ -17,7 +17,9 @@ import com.talent.aio.client.ClientGroupContext;
 import com.talent.aio.client.intf.ClientAioHandler;
 import com.talent.aio.client.intf.ClientAioListener;
 import com.talent.aio.common.Aio;
+import com.talent.aio.common.Node;
 import com.talent.aio.common.ReconnConf;
+import com.talent.aio.examples.helloworld.common.Const;
 import com.talent.aio.examples.helloworld.common.HelloPacket;
 
 /**
@@ -32,8 +34,7 @@ import com.talent.aio.examples.helloworld.common.HelloPacket;
  */
 public class HelloClientStarter
 {
-	private static String serverIp = null; //服务器的IP地址
-	private static int serverPort = 0; //服务器的PORT
+	private static Node serverNode = null;
 	private static AioClient<Object, HelloPacket, Object> aioClient;
 	private static ClientGroupContext<Object, HelloPacket, Object> clientGroupContext = null;
 	private static ClientAioHandler<Object, HelloPacket, Object> aioClientHandler = null;
@@ -42,17 +43,16 @@ public class HelloClientStarter
 
 	public static void main(String[] args) throws Exception
 	{
-		serverIp = "127.0.0.1";
-		serverPort = com.talent.aio.examples.helloworld.common.Const.PORT;
+		String serverIp = "127.0.0.1";
+		int serverPort = Const.PORT;
+		serverNode = new Node(serverIp, serverPort);
 		aioClientHandler = new HelloClientAioHandler();
 		aioListener = null;
 
-		clientGroupContext = new ClientGroupContext<>(serverIp, serverPort, aioClientHandler, aioListener, reconnConf);
+		clientGroupContext = new ClientGroupContext<>(aioClientHandler, aioListener, reconnConf);
 		aioClient = new AioClient<>(clientGroupContext);
 
-		String bindIp = null;
-		int bindPort = 0;
-		ClientChannelContext<Object, HelloPacket, Object> clientChannelContext = aioClient.connect(bindIp, bindPort);
+		ClientChannelContext<Object, HelloPacket, Object> clientChannelContext = aioClient.connect(serverNode);
 
 		//以下内容不是启动的过程，而是属于发消息的过程
 		HelloPacket packet = new HelloPacket();

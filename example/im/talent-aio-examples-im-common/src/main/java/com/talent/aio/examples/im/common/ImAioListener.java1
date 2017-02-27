@@ -28,7 +28,7 @@ import com.talent.aio.common.intf.AioListener;
  *  (1) | 2016年12月8日 | tanyaowu | 新建类
  *
  */
-public class ImAioListener implements AioListener<Object, ImPacket, Object>
+public class ImAioListener implements AioListener<ImSessionContext, ImPacket, Object>
 {
 	private static Logger log = LoggerFactory.getLogger(ImAioListener.class);
 	/**
@@ -64,13 +64,13 @@ public class ImAioListener implements AioListener<Object, ImPacket, Object>
 	 * 
 	 */
 	@Override
-	public void onAfterSent(ChannelContext<Object, ImPacket, Object> channelContext, ImPacket packet, int packetSize)
+	public void onAfterSent(ChannelContext<ImSessionContext, ImPacket, Object> channelContext, ImPacket packet, int packetSize)
 	{
 		CommandStat.getCount(packet.getCommand()).sent.incrementAndGet();
 	}
 
 	/** 
-	 * @see com.talent.aio.common.intf.AioListener#onAfterDecoded(com.talent.aio.common.ChannelContext, com.talent.aio.common.intf.Packet, int)
+	 * @see com.talent.aio.common.intf.AioListener#onAfterReceived(com.talent.aio.common.ChannelContext, com.talent.aio.common.intf.Packet, int)
 	 * 
 	 * @param channelContext
 	 * @param packet
@@ -80,7 +80,7 @@ public class ImAioListener implements AioListener<Object, ImPacket, Object>
 	 * 
 	 */
 	@Override
-	public void onAfterDecoded(ChannelContext<Object, ImPacket, Object> channelContext, ImPacket packet, int packetSize)
+	public void onAfterReceived(ChannelContext<ImSessionContext, ImPacket, Object> channelContext, ImPacket packet, int packetSize)
 	{
 		CommandStat.getCount(packet.getCommand()).received.incrementAndGet();
 
@@ -97,7 +97,7 @@ public class ImAioListener implements AioListener<Object, ImPacket, Object>
 	 * 
 	 */
 	@Override
-	public void onBeforeClose(ChannelContext<Object, ImPacket, Object> channelContext, Throwable throwable, String remark)
+	public void onBeforeClose(ChannelContext<ImSessionContext, ImPacket, Object> channelContext, Throwable throwable, String remark)
 	{
 		log.info("连接关闭了:{}", channelContext);
 	}
@@ -112,7 +112,7 @@ public class ImAioListener implements AioListener<Object, ImPacket, Object>
 	 * 
 	 */
 	@Override
-	public boolean onAfterConnected(ChannelContext<Object, ImPacket, Object> channelContext)
+	public boolean onAfterConnected(ChannelContext<ImSessionContext, ImPacket, Object> channelContext)
 	{
 		log.info("连接建立了:{}", channelContext);
 		String blacklistip = "127.4.3.3";

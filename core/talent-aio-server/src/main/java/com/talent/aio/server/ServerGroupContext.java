@@ -17,7 +17,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +24,7 @@ import com.talent.aio.common.Aio;
 import com.talent.aio.common.ChannelContext;
 import com.talent.aio.common.ChannelContext.Stat;
 import com.talent.aio.common.GroupContext;
-import com.talent.aio.common.ObjWithReadWriteLock;
+import com.talent.aio.common.ObjWithLock;
 import com.talent.aio.common.intf.AioHandler;
 import com.talent.aio.common.intf.AioListener;
 import com.talent.aio.common.intf.Packet;
@@ -47,90 +46,95 @@ import com.talent.aio.server.intf.ServerAioListener;
  * @操作列表  编号	| 操作时间	| 操作人员	 | 操作说明
  *  (1) | 2016年11月16日 | tanyaowu | 新建类
  */
-public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<Ext, P, R>
+public class ServerGroupContext<SessionContext, P extends Packet, R> extends GroupContext<SessionContext, P, R>
 {
 	static Logger log = LoggerFactory.getLogger(ServerGroupContext.class);
-	/** The ip. */
-	private String ip;
-
-	/** The port. */
-	private int port;
 
 	/** The group executor. */
 	private ThreadPoolExecutor groupExecutor = null;
 
-	private AcceptCompletionHandler<Ext, P, R> acceptCompletionHandler = null;
+	private AcceptCompletionHandler<SessionContext, P, R> acceptCompletionHandler = null;
 
-	private ServerAioHandler<Ext, P, R> serverAioHandler = null;
+	private ServerAioHandler<SessionContext, P, R> serverAioHandler = null;
 
-	private ServerAioListener<Ext, P, R> serverAioListener = null;
+	private ServerAioListener<SessionContext, P, R> serverAioListener = null;
 
 	protected ServerGroupStat serverGroupStat = new ServerGroupStat();
 
 	/** The accept executor. */
-	private ThreadPoolExecutor acceptExecutor = null;
+	//private ThreadPoolExecutor acceptExecutor = null;
 
 	private Thread checkHeartbeatThread = null;
+	
+	
 
 	/**
-	 * Instantiates a new aio server config.
+	 * 
+	 * @param aioHandler
+	 * @param aioListener
 	 *
-	 * @param ip the ip
-	 * @param port the port
-	 * @param aioHandler the aio handler
+	 * @author: tanyaowu
+	 * @创建时间:　2017年2月2日 下午1:40:29
+	 *
 	 */
-	public ServerGroupContext(String ip, int port, ServerAioHandler<Ext, P, R> aioHandler, ServerAioListener<Ext, P, R> aioListener)
+	public ServerGroupContext(ServerAioHandler<SessionContext, P, R> aioHandler, ServerAioListener<SessionContext, P, R> aioListener)
 	{
-		this(ip, port, aioHandler, aioListener, new ThreadPoolExecutor(CORE_POOL_SIZE, CORE_POOL_SIZE, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(),
+		this(aioHandler, aioListener, new ThreadPoolExecutor(CORE_POOL_SIZE, CORE_POOL_SIZE, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(),
 				DefaultThreadFactory.getInstance("t-aio-server-group")));
 	}
 
 	/**
-	 * Instantiates a new server group context.
+	 * 
+	 * @param serverAioHandler
+	 * @param serverAioListener
+	 * @param groupExecutor
 	 *
-	 * @param ip the ip
-	 * @param port the port
-	 * @param aioHandler the aio handler
-	 * @param groupExecutor the group executor
+	 * @author: tanyaowu
+	 * @创建时间:　2017年2月2日 下午1:40:11
+	 *
 	 */
-	public ServerGroupContext(String ip, int port, ServerAioHandler<Ext, P, R> serverAioHandler, ServerAioListener<Ext, P, R> serverAioListener, ThreadPoolExecutor groupExecutor)
+	public ServerGroupContext(ServerAioHandler<SessionContext, P, R> serverAioHandler, ServerAioListener<SessionContext, P, R> serverAioListener, ThreadPoolExecutor groupExecutor)
 	{
-		super((StringUtils.isBlank(ip) ? "0.0.0.0" : ip) + ":" + port);
-		this.ip = ip;
-		this.port = port;
+		super();
 		this.groupExecutor = groupExecutor;
 		this.acceptCompletionHandler = new AcceptCompletionHandler<>();
 		this.setServerAioHandler(serverAioHandler);
 		this.setServerAioListener(serverAioListener);
 
-		this.acceptExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), DefaultThreadFactory.getInstance("t-aio-server-accept"));
+		//this.acceptExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), DefaultThreadFactory.getInstance("t-aio-server-accept"));
 
 		checkHeartbeatThread = new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				while (true)
+				long sleeptime = heartbeatTimeout / 2;
+				while (!isStopped())
 				{
-					ObjWithReadWriteLock<Set<ChannelContext<Ext, P, R>>> objWithReadWriteLock = ServerGroupContext.this.getConnections().getSet();
-					ReadLock readLock = objWithReadWriteLock.getLock().readLock();
+					long start = SystemTimer.currentTimeMillis();
+					ObjWithLock<Set<ChannelContext<SessionContext, P, R>>> objWithLock = ServerGroupContext.this.getConnections().getSetWithLock();
+					ReadLock readLock = objWithLock.getLock().readLock();
+					long start1 = 0;
+					int count = 0;
 					try
 					{
 						readLock.lock();
-						Set<ChannelContext<Ext, P, R>> set = objWithReadWriteLock.getObj();
-
-						for (ChannelContext<Ext, P, R> entry : set)
+						start1 = SystemTimer.currentTimeMillis();
+						Set<ChannelContext<SessionContext, P, R>> set = objWithLock.getObj();
+						
+						for (ChannelContext<SessionContext, P, R> entry : set)
 						{
-							ChannelContext<Ext, P, R> channelContext = entry;
+							count++;
+							ChannelContext<SessionContext, P, R> channelContext = entry;
 							Stat stat = channelContext.getStat();
-							long timeLatestReceivedMsg = stat.getTimeLatestReceivedMsg();
-							long timeLatestSentMsg = stat.getTimeLatestSentMsg();
+							long timeLatestReceivedMsg = stat.getLatestTimeOfReceivedPacket();
+							long timeLatestSentMsg = stat.getLatestTimeOfSentPacket();
 							long compareTime = Math.max(timeLatestReceivedMsg, timeLatestSentMsg);
 							long currtime = SystemTimer.currentTimeMillis();
 							long interval = (currtime - compareTime);
 							if (interval > heartbeatTimeout)
 							{
-								Aio.close(channelContext, interval + "ms没有收发消息");
+								Aio.remove(channelContext, interval + "ms没有收发消息");
 							}
 						}
 
@@ -148,8 +152,16 @@ public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 					{
 						try
 						{
+							if (log.isInfoEnabled())
+							{
+								long end = SystemTimer.currentTimeMillis();
+								long iv1 = start1 - start;
+								long iv = end - start1;
+								log.info("检查心跳, 共{}个连接, 取锁耗时{}ms, 循环耗时{}ms, 心跳时间:{}", count, iv1, iv, heartbeatTimeout);
+							}
+							
 							readLock.unlock();
-							Thread.sleep(heartbeatTimeout / 2);
+							Thread.sleep(sleeptime);
 						} catch (Exception e)
 						{
 							log.error("", e);
@@ -176,7 +188,7 @@ public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	//	 * @param sendExecutorHighPrior the send executor high prior
 	//	 * @param sendExecutorNormPrior the send executor norm prior
 	//	 */
-	//	public ServerGroupContext(String ip, int port, AioHandler<Ext, P, R> aioHandler, SynThreadPoolExecutor<SynRunnableIntf> decodeExecutor,
+	//	public ServerGroupContext(String ip, int port, AioHandler<SessionContext, P, R> aioHandler, SynThreadPoolExecutor<SynRunnableIntf> decodeExecutor,
 	//			SynThreadPoolExecutor<SynRunnableIntf> closeExecutor, SynThreadPoolExecutor<SynRunnableIntf> handlerExecutorHighPrior,
 	//			SynThreadPoolExecutor<SynRunnableIntf> handlerExecutorNormPrior, SynThreadPoolExecutor<SynRunnableIntf> sendExecutorHighPrior,
 	//			SynThreadPoolExecutor<SynRunnableIntf> sendExecutorNormPrior)
@@ -196,46 +208,6 @@ public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	public static void main(String[] args)
 	{
 
-	}
-
-	/**
-	 * Gets the ip.
-	 *
-	 * @return the ip
-	 */
-	public String getIp()
-	{
-		return ip;
-	}
-
-	/**
-	 * Sets the ip.
-	 *
-	 * @param ip the ip to set
-	 */
-	public void setIp(String ip)
-	{
-		this.ip = ip;
-	}
-
-	/**
-	 * Gets the port.
-	 *
-	 * @return the port
-	 */
-	public int getPort()
-	{
-		return port;
-	}
-
-	/**
-	 * Sets the port.
-	 *
-	 * @param port the port to set
-	 */
-	public void setPort(int port)
-	{
-		this.port = port;
 	}
 
 	/**
@@ -263,20 +235,20 @@ public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	 *
 	 * @return the acceptExecutor
 	 */
-	public ThreadPoolExecutor getAcceptExecutor()
-	{
-		return acceptExecutor;
-	}
-
-	/**
-	 * Sets the accept executor.
-	 *
-	 * @param acceptExecutor the acceptExecutor to set
-	 */
-	public void setAcceptExecutor(ThreadPoolExecutor acceptExecutor)
-	{
-		this.acceptExecutor = acceptExecutor;
-	}
+//	public ThreadPoolExecutor getAcceptExecutor()
+//	{
+//		return acceptExecutor;
+//	}
+//
+//	/**
+//	 * Sets the accept executor.
+//	 *
+//	 * @param acceptExecutor the acceptExecutor to set
+//	 */
+//	public void setAcceptExecutor(ThreadPoolExecutor acceptExecutor)
+//	{
+//		this.acceptExecutor = acceptExecutor;
+//	}
 
 	//	/**
 	//	 * @return the serverGroupStat
@@ -302,7 +274,7 @@ public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	/**
 	 * @return the acceptCompletionHandler
 	 */
-	public AcceptCompletionHandler<Ext, P, R> getAcceptCompletionHandler()
+	public AcceptCompletionHandler<SessionContext, P, R> getAcceptCompletionHandler()
 	{
 		return acceptCompletionHandler;
 	}
@@ -310,7 +282,7 @@ public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	/**
 	 * @param acceptCompletionHandler the acceptCompletionHandler to set
 	 */
-	public void setAcceptCompletionHandler(AcceptCompletionHandler<Ext, P, R> acceptCompletionHandler)
+	public void setAcceptCompletionHandler(AcceptCompletionHandler<SessionContext, P, R> acceptCompletionHandler)
 	{
 		this.acceptCompletionHandler = acceptCompletionHandler;
 	}
@@ -318,7 +290,7 @@ public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	/**
 	 * @return the serverAioHandler
 	 */
-	public ServerAioHandler<Ext, P, R> getServerAioHandler()
+	public ServerAioHandler<SessionContext, P, R> getServerAioHandler()
 	{
 		return serverAioHandler;
 	}
@@ -326,7 +298,7 @@ public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	/**
 	 * @param serverAioHandler the serverAioHandler to set
 	 */
-	public void setServerAioHandler(ServerAioHandler<Ext, P, R> serverAioHandler)
+	public void setServerAioHandler(ServerAioHandler<SessionContext, P, R> serverAioHandler)
 	{
 		this.serverAioHandler = serverAioHandler;
 	}
@@ -334,7 +306,7 @@ public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	/**
 	 * @return the serverAioListener
 	 */
-	public ServerAioListener<Ext, P, R> getServerAioListener()
+	public ServerAioListener<SessionContext, P, R> getServerAioListener()
 	{
 		return serverAioListener;
 	}
@@ -342,9 +314,14 @@ public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	/**
 	 * @param serverAioListener the serverAioListener to set
 	 */
-	public void setServerAioListener(ServerAioListener<Ext, P, R> serverAioListener)
+	public void setServerAioListener(ServerAioListener<SessionContext, P, R> serverAioListener)
 	{
 		this.serverAioListener = serverAioListener;
+		
+		if (this.serverAioListener == null)
+		{
+			this.serverAioListener = new DefaultServerAioListener<SessionContext, P, R>();
+		}
 	}
 
 	/** 
@@ -356,7 +333,7 @@ public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	 * 
 	 */
 	@Override
-	public AioHandler<Ext, P, R> getAioHandler()
+	public AioHandler<SessionContext, P, R> getAioHandler()
 	{
 		return this.getServerAioHandler();
 	}
@@ -384,7 +361,7 @@ public class ServerGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	 * 
 	 */
 	@Override
-	public AioListener<Ext, P, R> getAioListener()
+	public AioListener<SessionContext, P, R> getAioListener()
 	{
 		return getServerAioListener();
 	}

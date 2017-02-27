@@ -5,9 +5,9 @@
 
 	<parent>
 		<groupId>com.talent-aio</groupId>
-		<artifactId>talent-parent</artifactId>
-		<version>1.0.0-RELEASE</version>
-		<relativePath>../../../parent/pom.xml</relativePath>
+		<artifactId>talent-aio-examples-parent</artifactId>
+		<version>1.0.2.v20170217-SNAPSHOT</version>
+		<relativePath>../../parent/pom.xml</relativePath>
 	</parent>
 
 	<dependencies>
@@ -16,6 +16,33 @@
 			<groupId>com.talent-aio</groupId>
 			<artifactId>talent-aio-common</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		
+		<!-- slf4j-logback绑定 -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-access</artifactId>
+		</dependency>
+		
+		
+		<!-- redirect apache commons logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+		</dependency>
+		<!-- redirect jdk util logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jul-to-slf4j</artifactId>
+		</dependency>
+		<!-- redirect log4j -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>log4j-over-slf4j</artifactId>
 		</dependency>
 
 
@@ -30,15 +57,17 @@
 			<artifactId>testng</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-
-
-
 		
 	</dependencies>
 	<build>
 		<plugins>
-			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 

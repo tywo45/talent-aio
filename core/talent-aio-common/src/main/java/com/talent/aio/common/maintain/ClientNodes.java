@@ -6,7 +6,7 @@ import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 
 import com.talent.aio.common.ChannelContext;
 import com.talent.aio.common.Node;
-import com.talent.aio.common.ObjWithReadWriteLock;
+import com.talent.aio.common.ObjWithLock;
 import com.talent.aio.common.intf.Packet;
 
 /**
@@ -17,12 +17,12 @@ import com.talent.aio.common.intf.Packet;
  * @操作列表  编号	| 操作时间	| 操作人员	 | 操作说明
  *  (1) | 2016年11月17日 | tanyaowu | 新建类
  */
-public class ClientNodes<Ext, P extends Packet, R>
+public class ClientNodes<SessionContext, P extends Packet, R>
 {
 
 	/** remoteAndChannelContext key: "ip:port" value: ChannelContext. */
-	private ObjWithReadWriteLock<DualHashBidiMap<String, ChannelContext<Ext, P, R>>> map = new ObjWithReadWriteLock<DualHashBidiMap<String, ChannelContext<Ext, P, R>>>(
-			new DualHashBidiMap<String, ChannelContext<Ext, P, R>>());
+	private ObjWithLock<DualHashBidiMap<String, ChannelContext<SessionContext, P, R>>> map = new ObjWithLock<DualHashBidiMap<String, ChannelContext<SessionContext, P, R>>>(
+			new DualHashBidiMap<String, ChannelContext<SessionContext, P, R>>());
 
 	/**
 	 * Gets the key.
@@ -33,14 +33,14 @@ public class ClientNodes<Ext, P extends Packet, R>
 	 * @param channelContext the channel context
 	 * @return the key
 	 */
-	public static <Ext, P extends Packet, R> String getKey(ChannelContext<Ext, P, R> channelContext)
+	public static <SessionContext, P extends Packet, R> String getKey(ChannelContext<SessionContext, P, R> channelContext)
 	{
-		Node remotenode = channelContext.getClientNode();
-		if (remotenode == null)
+		Node clientNode = channelContext.getClientNode();
+		if (clientNode == null)
 		{
-			throw new RuntimeException("remotenode is null");
+			throw new RuntimeException("client node is null");
 		}
-		String key = getKey(remotenode.getIp(), remotenode.getPort());
+		String key = getKey(clientNode.getIp(), clientNode.getPort());
 		return key;
 	}
 
@@ -68,10 +68,10 @@ public class ClientNodes<Ext, P extends Packet, R>
 	 * @param <R> the generic type
 	 * @param channelContext the channel context
 	 */
-	public void remove(ChannelContext<Ext, P, R> channelContext)
+	public void remove(ChannelContext<SessionContext, P, R> channelContext)
 	{
 		Lock lock = map.getLock().writeLock();
-		DualHashBidiMap<String, ChannelContext<Ext, P, R>> m = map.getObj();
+		DualHashBidiMap<String, ChannelContext<SessionContext, P, R>> m = map.getObj();
 		try
 		{
 			lock.lock();
@@ -95,11 +95,11 @@ public class ClientNodes<Ext, P extends Packet, R>
 	 * @author: tanyaowu
 	 * @创建时间:　2016年11月17日 下午2:25:46
 	 */
-	public void put(ChannelContext<Ext, P, R> channelContext)
+	public void put(ChannelContext<SessionContext, P, R> channelContext)
 	{
 		String key = getKey(channelContext);
 		Lock lock = map.getLock().writeLock();
-		DualHashBidiMap<String, ChannelContext<Ext, P, R>> m = map.getObj();
+		DualHashBidiMap<String, ChannelContext<SessionContext, P, R>> m = map.getObj();
 
 		try
 		{
@@ -124,21 +124,21 @@ public class ClientNodes<Ext, P extends Packet, R>
 	 * @创建时间:　2016年12月6日 下午12:07:35
 	 *
 	 */
-	public ChannelContext<Ext, P, R> find(String ip, int port)
+	public ChannelContext<SessionContext, P, R> find(String ip, int port)
 	{
 		String key = getKey(ip, port);
 		return find(key);
 	}
 
-	public ChannelContext<Ext, P, R> find(String key)
+	public ChannelContext<SessionContext, P, R> find(String key)
 	{
 		Lock lock = map.getLock().readLock();
-		DualHashBidiMap<String, ChannelContext<Ext, P, R>> m = map.getObj();
+		DualHashBidiMap<String, ChannelContext<SessionContext, P, R>> m = map.getObj();
 
 		try
 		{
 			lock.lock();
-			return (ChannelContext<Ext, P, R>) m.get(key);
+			return (ChannelContext<SessionContext, P, R>) m.get(key);
 		} catch (Exception e)
 		{
 			throw e;
@@ -174,7 +174,7 @@ public class ClientNodes<Ext, P extends Packet, R>
 	/**
 	 * @return the map
 	 */
-	public ObjWithReadWriteLock<DualHashBidiMap<String, ChannelContext<Ext, P, R>>> getMap()
+	public ObjWithLock<DualHashBidiMap<String, ChannelContext<SessionContext, P, R>>> getMap()
 	{
 		return map;
 	}

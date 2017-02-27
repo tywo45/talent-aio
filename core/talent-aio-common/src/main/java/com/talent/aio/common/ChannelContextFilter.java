@@ -23,7 +23,7 @@ import com.talent.aio.common.intf.Packet;
  *  (1) | 2017年1月13日 | tanyaowu | 新建类
  *
  */
-public interface ChannelContextFilter<Ext, P extends Packet, R>
+public interface ChannelContextFilter<SessionContext, P extends Packet, R>
 {
 
 	/**
@@ -35,6 +35,6 @@ public interface ChannelContextFilter<Ext, P extends Packet, R>
 	 * @创建时间:　2017年1月13日 下午3:28:54
 	 *
 	 */
-	public boolean filter(ChannelContext<Ext, P, R> channelContext);
+	public boolean filter(ChannelContext<SessionContext, P, R> channelContext);
 
 }

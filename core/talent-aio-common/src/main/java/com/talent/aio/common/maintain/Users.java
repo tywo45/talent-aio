@@ -16,7 +16,7 @@ import java.util.concurrent.locks.Lock;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 
 import com.talent.aio.common.ChannelContext;
-import com.talent.aio.common.ObjWithReadWriteLock;
+import com.talent.aio.common.ObjWithLock;
 import com.talent.aio.common.intf.Packet;
 
 /**
@@ -26,25 +26,25 @@ import com.talent.aio.common.intf.Packet;
  * @param <P> the generic type
  * @param <R> the generic type
  */
-public class Users<Ext, P extends Packet, R>
+public class Users<SessionContext, P extends Packet, R>
 {
 
 	/**
 	 * key: userid
 	 * value: ChannelContext
 	 */
-	private ObjWithReadWriteLock<DualHashBidiMap<String, ChannelContext<Ext, P, R>>> map = new ObjWithReadWriteLock<DualHashBidiMap<String, ChannelContext<Ext, P, R>>>(
-			new DualHashBidiMap<String, ChannelContext<Ext, P, R>>());
+	private ObjWithLock<DualHashBidiMap<String, ChannelContext<SessionContext, P, R>>> map = new ObjWithLock<DualHashBidiMap<String, ChannelContext<SessionContext, P, R>>>(
+			new DualHashBidiMap<String, ChannelContext<SessionContext, P, R>>());
 
 	/**
 	 * 解除绑定
 	 *
 	 * @param channelContext the channel context
 	 */
-	public void unbind(ChannelContext<Ext, P, R> channelContext)
+	public void unbind(ChannelContext<SessionContext, P, R> channelContext)
 	{
 		Lock lock = map.getLock().writeLock();
-		DualHashBidiMap<String, ChannelContext<Ext, P, R>> m = map.getObj();
+		DualHashBidiMap<String, ChannelContext<SessionContext, P, R>> m = map.getObj();
 		try
 		{
 			lock.lock();
@@ -68,7 +68,7 @@ public class Users<Ext, P extends Packet, R>
 	public void unbind(String userid)
 	{
 		Lock lock = map.getLock().writeLock();
-		DualHashBidiMap<String, ChannelContext<Ext, P, R>> m = map.getObj();
+		DualHashBidiMap<String, ChannelContext<SessionContext, P, R>> m = map.getObj();
 		try
 		{
 			lock.lock();
@@ -90,11 +90,11 @@ public class Users<Ext, P extends Packet, R>
 	 * @author: tanyaowu
 	 * @创建时间:　2016年11月17日 下午2:25:46
 	 */
-	public void bind(String userid, ChannelContext<Ext, P, R> channelContext)
+	public void bind(String userid, ChannelContext<SessionContext, P, R> channelContext)
 	{
 		String key = userid;
 		Lock lock = map.getLock().writeLock();
-		DualHashBidiMap<String, ChannelContext<Ext, P, R>> m = map.getObj();
+		DualHashBidiMap<String, ChannelContext<SessionContext, P, R>> m = map.getObj();
 
 		try
 		{
@@ -116,16 +116,16 @@ public class Users<Ext, P extends Packet, R>
 	 * @param userid the userid
 	 * @return the channel context
 	 */
-	public ChannelContext<Ext, P, R> find(String userid)
+	public ChannelContext<SessionContext, P, R> find(String userid)
 	{
 		String key = userid;
 		Lock lock = map.getLock().readLock();
-		DualHashBidiMap<String, ChannelContext<Ext, P, R>> m = map.getObj();
+		DualHashBidiMap<String, ChannelContext<SessionContext, P, R>> m = map.getObj();
 
 		try
 		{
 			lock.lock();
-			return (ChannelContext<Ext, P, R>) m.get(key);
+			return (ChannelContext<SessionContext, P, R>) m.get(key);
 		} catch (Exception e)
 		{
 			throw e;

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talent.aio.examples.im.common.ImPacket;
+import com.talent.aio.examples.im.common.ImSessionContext;
 import com.talent.aio.server.AioServer;
 import com.talent.aio.server.ServerGroupContext;
 import com.talent.aio.server.intf.ServerAioHandler;
@@ -49,15 +50,15 @@ public class ImServerStarter
 
 	}
 
-	static ServerGroupContext<Object, ImPacket, Object> serverGroupContext = null;
+	static ServerGroupContext<ImSessionContext, ImPacket, Object> serverGroupContext = null;
 
-	static AioServer<Object, ImPacket, Object> aioServer = null;
+	static AioServer<ImSessionContext, ImPacket, Object> aioServer = null;
 
-	static ServerAioHandler<Object, ImPacket, Object> aioHandler = null;
+	static ServerAioHandler<ImSessionContext, ImPacket, Object> aioHandler = null;
 
-	static ServerAioListener<Object, ImPacket, Object> aioListener = null;
+	static ServerAioListener<ImSessionContext, ImPacket, Object> aioListener = null;
 
-	static String ip = null;
+	static String ip = null;//"127.0.0.1";
 
 	static int port = 9321;
 
@@ -73,30 +74,11 @@ public class ImServerStarter
 	{
 		aioHandler = new ImServerAioHandler();
 		aioListener = new ImServerAioListener();
-		serverGroupContext = new ServerGroupContext<>(ip, port, aioHandler, aioListener);
+		serverGroupContext = new ServerGroupContext<>(aioHandler, aioListener);
+		serverGroupContext.setEncodeCareWithChannelContext(true);
+		serverGroupContext.setReadBufferSize(2048);
 		aioServer = new AioServer<>(serverGroupContext);
-		aioServer.start();
-
-		
-		//下面的代码就是定时打印日志，实际生产环境中可以不用。
-//		new Thread(new Runnable()
-//		{
-//			@Override
-//			public void run()
-//			{
-//				while (true)
-//				{
-//					try
-//					{
-//						log.info("[{}]: command stat:{}", SystemTimer.currentTimeMillis(), Json.toJson(CommandStat.commandAndCount));
-//						Thread.sleep(5000);
-//					} catch (Throwable e)
-//					{
-//						log.error("", e);
-//					}
-//				}
-//			}
-//		}, "t-aio-server-monitor").start();
+		aioServer.start(ip, port);
 	}
 
 }

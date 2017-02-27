@@ -42,8 +42,8 @@ public class HelloServerStarter
 	{
 		aioHandler = new HelloServerAioHandler();
 		aioListener = null; //可以为空
-		serverGroupContext = new ServerGroupContext<>(ip, port, aioHandler, aioListener);
+		serverGroupContext = new ServerGroupContext<>(aioHandler, aioListener);
 		aioServer = new AioServer<>(serverGroupContext);
-		aioServer.start();
+		aioServer.start(ip, port);
 	}
 }

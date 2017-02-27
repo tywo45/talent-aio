@@ -24,7 +24,7 @@ import com.talent.aio.common.intf.Packet;
  *  (1) | 2016年12月6日 | tanyaowu | 新建类
  *
  */
-public interface ServerAioHandler <Ext, P extends Packet, R> extends AioHandler<Ext, P, R>
+public interface ServerAioHandler <SessionContext, P extends Packet, R> extends AioHandler<SessionContext, P, R>
 {
 	
 }

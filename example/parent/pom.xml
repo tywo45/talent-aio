@@ -1,0 +1,75 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>talent-aio-examples-parent</artifactId>
+	<packaging>pom</packaging>
+	<name>talent-aio-examples-parent</name>
+	<url>http://maven.apache.org</url>
+
+	<description>talent-aio-examples's parent</description>
+	
+	<parent>
+		<groupId>com.talent-aio</groupId>
+		<artifactId>talent-aio-parent</artifactId>
+		<version>1.0.2.v20170217-SNAPSHOT</version>
+		<relativePath>../../parent/pom.xml</relativePath>
+	</parent>
+
+
+	<modules>
+
+		<module>../im/talent-aio-examples-im-common</module>
+		<module>../im/talent-aio-examples-im-server</module>
+		<module>../im/talent-aio-examples-im-client</module>
+
+		<module>../helloworld/talent-aio-examples-helloworld-common</module>
+		<module>../helloworld/talent-aio-examples-helloworld-client</module>
+		<module>../helloworld/talent-aio-examples-helloworld-server</module>
+
+		<module>../http/talent-aio-examples-http-common</module>
+		<module>../http/talent-aio-examples-http-client</module>
+		<module>../http/talent-aio-examples-http-server</module>
+	</modules>
+
+
+
+	<developers>
+		<developer>
+			<id>tanyaowu</id>
+			<name>tanyaowu</name>
+			<email>tywo45@163.com</email>
+			<url>https://git.oschina.net/tywo45/talent-aio</url>
+		</developer>
+	</developers>
+
+	<repositories>
+
+
+	</repositories>
+	<pluginRepositories>
+
+
+
+	</pluginRepositories>
+
+	<dependencyManagement>
+		
+	</dependencyManagement>
+
+
+
+	<!-- 插件配置 -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+
+</project>

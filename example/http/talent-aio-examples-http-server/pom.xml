@@ -5,9 +5,9 @@
 
 	<parent>
 		<groupId>com.talent-aio</groupId>
-		<artifactId>talent-parent</artifactId>
-		<version>1.0.0-RELEASE</version>
-		<relativePath>../../../parent/pom.xml</relativePath>
+		<artifactId>talent-aio-examples-parent</artifactId>
+		<version>1.0.2.v20170217-SNAPSHOT</version>
+		<relativePath>../../parent/pom.xml</relativePath>
 	</parent>
 
 	<dependencies>

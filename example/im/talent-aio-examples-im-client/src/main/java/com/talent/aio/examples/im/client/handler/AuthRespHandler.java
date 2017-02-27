@@ -8,11 +8,12 @@ import org.slf4j.LoggerFactory;
 
 import com.talent.aio.common.Aio;
 import com.talent.aio.common.ChannelContext;
+import com.talent.aio.common.utils.SystemTimer;
 import com.talent.aio.examples.im.client.ui.JFrameMain;
-import com.talent.aio.examples.im.common.Command;
 import com.talent.aio.examples.im.common.ImPacket;
-import com.talent.aio.examples.im.common.bs.JoinReqBody;
-import com.talent.aio.examples.im.common.json.Json;
+import com.talent.aio.examples.im.common.ImSessionContext;
+import com.talent.aio.examples.im.common.packets.Command;
+import com.talent.aio.examples.im.common.packets.JoinReqBody;
 
 /**
  * 
@@ -33,7 +34,7 @@ import com.talent.aio.examples.im.common.json.Json;
  * </table>
  */
 
-public class AuthRespHandler implements ImBsAioHandlerIntf
+public class AuthRespHandler implements ImAioHandlerIntf
 {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(AuthRespHandler.class);
@@ -55,7 +56,7 @@ public class AuthRespHandler implements ImBsAioHandlerIntf
 	}
 
 	/** 
-	 * @see com.talent.aio.examples.im.client.handler.ImBsAioHandlerIntf#handler(com.talent.aio.examples.im.common.ImPacket, com.talent.aio.common.ChannelContext)
+	 * @see com.talent.aio.examples.im.client.handler.ImAioHandlerIntf#handler(com.talent.aio.examples.im.common.ImPacket, com.talent.aio.common.ChannelContext)
 	 * 
 	 * @param packet
 	 * @param channelContext
@@ -66,12 +67,15 @@ public class AuthRespHandler implements ImBsAioHandlerIntf
 	 * 
 	 */
 	@Override
-	public Object handler(ImPacket packet, ChannelContext<Object, ImPacket, Object> channelContext) throws Exception
+	public Object handler(ImPacket packet, ChannelContext<ImSessionContext, ImPacket, Object> channelContext) throws Exception
 	{
-		JoinReqBody joinReqBody = new JoinReqBody(JFrameMain.getInstance().getGroupField().getText());
+		String group = JFrameMain.getInstance().getGroupField().getText();
+		JoinReqBody reqBody = JoinReqBody.newBuilder().setGroup(group).setTime(SystemTimer.currentTimeMillis()).build();
+		byte[] body = reqBody.toByteArray();
+
 		ImPacket respPacket = new ImPacket();
-		respPacket.setCommand(Command.JOIN_GROUP_REQ);
-		respPacket.setBody(Json.toJson(joinReqBody).getBytes(ImPacket.CHARSET));
+		respPacket.setCommand(Command.COMMAND_JOIN_GROUP_REQ);
+		respPacket.setBody(body);
 		Aio.send(channelContext, respPacket);
 		return null;
 	}

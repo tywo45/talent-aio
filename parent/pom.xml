@@ -2,10 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.talent-aio</groupId>
-	<artifactId>talent-parent</artifactId>
+	<artifactId>talent-aio-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>1.0.0-RELEASE</version>
-	<name>platform Maven Webapp</name>
+	<version>1.0.2.v20170217-SNAPSHOT</version>
+	<name>talent-aio-parent</name>
 	<url>http://maven.apache.org</url>
 
 	<description>talent-aio is a aio framework for java</description>
@@ -36,17 +36,8 @@
 		<module>../core/talent-aio-codec</module>
 
 
-		<module>../example/im/talent-aio-examples-im-common</module>
-		<module>../example/im/talent-aio-examples-im-server</module>
-		<module>../example/im/talent-aio-examples-im-client</module>
+		<module>../example/parent</module>
 
-		<module>../example/helloworld/talent-aio-examples-helloworld-common</module>
-		<module>../example/helloworld/talent-aio-examples-helloworld-client</module>
-		<module>../example/helloworld/talent-aio-examples-helloworld-server</module>
-		
-		<module>../example/http/talent-aio-examples-http-common</module>
-		<module>../example/http/talent-aio-examples-http-client</module>
-		<module>../example/http/talent-aio-examples-http-server</module>
 	</modules>
 
 	<properties>
@@ -63,8 +54,13 @@
 		<commons-collections4.version>4.1</commons-collections4.version>
 		<commons-lang3.version>3.5</commons-lang3.version>
 		<commons-codec.version>1.10</commons-codec.version>
+		<commons-compress.version>1.13</commons-compress.version>
 		<fastjson.version>1.2.23</fastjson.version>
 		<testng.version>6.10</testng.version>
+		<protobuf-java.version>3.2.0</protobuf-java.version>
+		<commons-beanutils.version>1.9.3</commons-beanutils.version>
+		<protobuf-java-format.version>1.4</protobuf-java-format.version>
+
 	</properties>
 
 	<developers>
@@ -88,6 +84,20 @@
 
 	<dependencyManagement>
 		<dependencies>
+
+			<dependency>
+				<groupId>com.googlecode.protobuf-java-format</groupId>
+				<artifactId>protobuf-java-format</artifactId>
+				<version>${protobuf-java-format.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>commons-beanutils</groupId>
+				<artifactId>commons-beanutils</artifactId>
+				<version>${commons-beanutils.version}</version>
+			</dependency>
+
+
 			<!-- log framework start -->
 			<dependency>
 				<groupId>org.slf4j</groupId>
@@ -175,6 +185,17 @@
 				<groupId>org.testng</groupId>
 				<artifactId>testng</artifactId>
 				<version>${testng.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.protobuf</groupId>
+				<artifactId>protobuf-java</artifactId>
+				<version>${protobuf-java.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-compress</artifactId>
+				<version>${commons-compress.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -318,6 +339,13 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-pmd-plugin</artifactId>
+				</plugin>
+
+				<!-- 发布插件 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>2.8.2</version>
 				</plugin>
 
 

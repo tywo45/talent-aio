@@ -16,13 +16,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talent.aio.client.intf.ClientAioHandler;
 import com.talent.aio.client.intf.ClientAioListener;
-import com.talent.aio.common.ChannelContext;
 import com.talent.aio.common.GroupContext;
 import com.talent.aio.common.ReconnConf;
 import com.talent.aio.common.intf.AioHandler;
@@ -43,88 +41,73 @@ import com.talent.aio.common.threadpool.DefaultThreadFactory;
  * @操作列表  编号	| 操作时间	| 操作人员	 | 操作说明
  *  (1) | 2016年11月16日 | tanyaowu | 新建类
  */
-public class ClientGroupContext<Ext, P extends Packet, R> extends GroupContext<Ext, P, R>
+public class ClientGroupContext<SessionContext, P extends Packet, R> extends GroupContext<SessionContext, P, R>
 {
 	static Logger log = LoggerFactory.getLogger(ClientGroupContext.class);
-
-	/** The ip. */
-	private String ip;
-
-	/** The port. */
-	private int port;
 
 	/** The group executor. */
 	private ExecutorService groupExecutor = null;
 
-	private ClientAioHandler<Ext, P, R> clientAioHandler = null;
+	private ClientAioHandler<SessionContext, P, R> clientAioHandler = null;
 
-	private ClientAioListener<Ext, P, R> clientAioListener = null;
+	private ClientAioListener<SessionContext, P, R> clientAioListener = null;
 
 	private ClientGroupStat clientGroupStat = new ClientGroupStat();
+	
+	private ConnectionCompletionHandler<SessionContext, P, R> connectionCompletionHandler = new ConnectionCompletionHandler<>();
 
 	/**
 	 * 不重连
-	 * @param ip
-	 * @param port
 	 * @param aioHandler
 	 * @param aioListener
 	 *
 	 * @author: tanyaowu
-	 * @创建时间:　2017年1月11日 下午5:01:50
+	 * @创建时间:　2017年2月2日 下午1:34:58
 	 *
 	 */
-	public ClientGroupContext(String ip, int port, ClientAioHandler<Ext, P, R> aioHandler, ClientAioListener<Ext, P, R> aioListener)
+	public ClientGroupContext(ClientAioHandler<SessionContext, P, R> aioHandler, ClientAioListener<SessionContext, P, R> aioListener)
 	{
-		this(ip, port, aioHandler, aioListener, null, new ThreadPoolExecutor(CORE_POOL_SIZE, CORE_POOL_SIZE, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(),
+		this(aioHandler, aioListener, null, new ThreadPoolExecutor(CORE_POOL_SIZE, CORE_POOL_SIZE, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(),
 				DefaultThreadFactory.getInstance("t-aio-client-group")));
 	}
 
 	/**
 	 * 
-	 * @param ip
-	 * @param port
 	 * @param aioHandler
 	 * @param aioListener
-	 * @param reconnConf 不需要重连就为空
+	 * @param reconnConf
 	 *
 	 * @author: tanyaowu
-	 * @创建时间:　2017年1月11日 下午4:30:53
+	 * @创建时间:　2017年2月2日 下午1:34:42
 	 *
 	 */
-	public ClientGroupContext(String ip, int port, ClientAioHandler<Ext, P, R> aioHandler, ClientAioListener<Ext, P, R> aioListener, ReconnConf<Ext, P, R> reconnConf)
+	public ClientGroupContext(ClientAioHandler<SessionContext, P, R> aioHandler, ClientAioListener<SessionContext, P, R> aioListener, ReconnConf<SessionContext, P, R> reconnConf)
 	{
-		this(ip, port, aioHandler, aioListener, reconnConf, new ThreadPoolExecutor(CORE_POOL_SIZE, CORE_POOL_SIZE, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(),
+		this(aioHandler, aioListener, reconnConf, new ThreadPoolExecutor(CORE_POOL_SIZE, CORE_POOL_SIZE, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(),
 				DefaultThreadFactory.getInstance("t-aio-client-group")));
 	}
 
 	/**
 	 * 
-	 * @param ip
-	 * @param port
 	 * @param aioHandler
 	 * @param aioListener
 	 * @param reconnConf 不需要重连就为空
 	 * @param groupExecutor
 	 *
 	 * @author: tanyaowu
-	 * @创建时间:　2017年1月11日 下午4:29:48
+	 * @创建时间:　2017年2月2日 下午1:30:08
 	 *
 	 */
-	public ClientGroupContext(String ip, int port, ClientAioHandler<Ext, P, R> aioHandler, ClientAioListener<Ext, P, R> aioListener, ReconnConf<Ext, P, R> reconnConf,
-			ExecutorService groupExecutor)
+	public ClientGroupContext(ClientAioHandler<SessionContext, P, R> aioHandler, ClientAioListener<SessionContext, P, R> aioListener, ReconnConf<SessionContext, P, R> reconnConf, ExecutorService groupExecutor)
 	{
-		super((StringUtils.isBlank(ip) ? "0.0.0.0" : ip) + ":" + port);
+		super();
 
 		this.setClientAioHandler(aioHandler);
 		this.setClientAioListener(aioListener);
 
 		this.reconnConf = reconnConf;
-		this.ip = ip;
-		this.port = port;
 		this.groupExecutor = groupExecutor;
 	}
-
-	
 
 	//	/**
 	//	 * Instantiates a new server group context.
@@ -139,7 +122,7 @@ public class ClientGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	//	 * @param sendExecutorHighPrior the send executor high prior
 	//	 * @param sendExecutorNormPrior the send executor norm prior
 	//	 */
-	//	public ClientGroupContext(String ip, int port, AioHandler<Ext, P, R> aioHandler,
+	//	public ClientGroupContext(String ip, int port, AioHandler<SessionContext, P, R> aioHandler,
 	//			SynThreadPoolExecutor<SynRunnableIntf> decodeExecutor,SynThreadPoolExecutor<SynRunnableIntf> closeExecutor, SynThreadPoolExecutor<SynRunnableIntf> handlerExecutorHighPrior,
 	//			SynThreadPoolExecutor<SynRunnableIntf> handlerExecutorNormPrior, SynThreadPoolExecutor<SynRunnableIntf> sendExecutorHighPrior,
 	//			SynThreadPoolExecutor<SynRunnableIntf> sendExecutorNormPrior)
@@ -159,46 +142,6 @@ public class ClientGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	public static void main(String[] args)
 	{
 
-	}
-
-	/**
-	 * Gets the ip.
-	 *
-	 * @return the ip
-	 */
-	public String getIp()
-	{
-		return ip;
-	}
-
-	/**
-	 * Sets the ip.
-	 *
-	 * @param ip the ip to set
-	 */
-	public void setIp(String ip)
-	{
-		this.ip = ip;
-	}
-
-	/**
-	 * Gets the port.
-	 *
-	 * @return the port
-	 */
-	public int getPort()
-	{
-		return port;
-	}
-
-	/**
-	 * Sets the port.
-	 *
-	 * @param port the port to set
-	 */
-	public void setPort(int port)
-	{
-		this.port = port;
 	}
 
 	/**
@@ -237,7 +180,7 @@ public class ClientGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	/**
 	 * @return the clientAioHandler
 	 */
-	public ClientAioHandler<Ext, P, R> getClientAioHandler()
+	public ClientAioHandler<SessionContext, P, R> getClientAioHandler()
 	{
 		return clientAioHandler;
 	}
@@ -245,7 +188,7 @@ public class ClientGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	/**
 	 * @param clientAioHandler the clientAioHandler to set
 	 */
-	public void setClientAioHandler(ClientAioHandler<Ext, P, R> clientAioHandler)
+	public void setClientAioHandler(ClientAioHandler<SessionContext, P, R> clientAioHandler)
 	{
 		this.clientAioHandler = clientAioHandler;
 	}
@@ -253,7 +196,7 @@ public class ClientGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	/**
 	 * @return the clientAioListener
 	 */
-	public ClientAioListener<Ext, P, R> getClientAioListener()
+	public ClientAioListener<SessionContext, P, R> getClientAioListener()
 	{
 		return clientAioListener;
 	}
@@ -261,9 +204,13 @@ public class ClientGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	/**
 	 * @param clientAioListener the clientAioListener to set
 	 */
-	public void setClientAioListener(ClientAioListener<Ext, P, R> clientAioListener)
+	public void setClientAioListener(ClientAioListener<SessionContext, P, R> clientAioListener)
 	{
 		this.clientAioListener = clientAioListener;
+		if (this.clientAioListener == null)
+		{
+			this.clientAioListener = new DefaultClientAioListener<SessionContext, P, R>();
+		}
 	}
 
 	/** 
@@ -275,7 +222,7 @@ public class ClientGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	 * 
 	 */
 	@Override
-	public AioHandler<Ext, P, R> getAioHandler()
+	public AioHandler<SessionContext, P, R> getAioHandler()
 	{
 		return this.getClientAioHandler();
 	}
@@ -303,7 +250,7 @@ public class ClientGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	 * 
 	 */
 	@Override
-	public AioListener<Ext, P, R> getAioListener()
+	public AioListener<SessionContext, P, R> getAioListener()
 	{
 		return this.getClientAioListener();
 	}
@@ -311,9 +258,25 @@ public class ClientGroupContext<Ext, P extends Packet, R> extends GroupContext<E
 	/**
 	 * @param reconnConf the reconnConf to set
 	 */
-	public void setReconnConf(ReconnConf reconnConf)
+	public void setReconnConf(ReconnConf<SessionContext, P, R> reconnConf)
 	{
 		this.reconnConf = reconnConf;
+	}
+
+	/**
+	 * @return the connectionCompletionHandler
+	 */
+	public ConnectionCompletionHandler<SessionContext, P, R> getConnectionCompletionHandler()
+	{
+		return connectionCompletionHandler;
+	}
+
+	/**
+	 * @param connectionCompletionHandler the connectionCompletionHandler to set
+	 */
+	public void setConnectionCompletionHandler(ConnectionCompletionHandler<SessionContext, P, R> connectionCompletionHandler)
+	{
+		this.connectionCompletionHandler = connectionCompletionHandler;
 	}
 
 }

@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talent.aio.common.ChannelContext;
-import com.talent.aio.common.ObjWithReadWriteLock;
+import com.talent.aio.common.ObjWithLock;
 import com.talent.aio.common.intf.Packet;
 
 /**
@@ -32,19 +32,19 @@ import com.talent.aio.common.intf.Packet;
  * @操作列表  编号	| 操作时间	| 操作人员	 | 操作说明
  *  (1) | 2016年11月17日 | tanyaowu | 新建类
  */
-public class Groups<Ext, P extends Packet, R>
+public class Groups<SessionContext, P extends Packet, R>
 {
 
 	/** The log. */
 	private static Logger log = LoggerFactory.getLogger(Groups.class);
 
 	/** 一个组有哪些客户端 key: groupid value: Set<ChannelContext<?, ?, ?>. */
-	private ObjWithReadWriteLock<Map<String, ObjWithReadWriteLock<Set<ChannelContext<Ext, P, R>>>>> groupmap = new ObjWithReadWriteLock<Map<String, ObjWithReadWriteLock<Set<ChannelContext<Ext, P, R>>>>>(
-			new ConcurrentHashMap<String, ObjWithReadWriteLock<Set<ChannelContext<Ext, P, R>>>>());
+	private ObjWithLock<Map<String, ObjWithLock<Set<ChannelContext<SessionContext, P, R>>>>> groupmap = new ObjWithLock<Map<String, ObjWithLock<Set<ChannelContext<SessionContext, P, R>>>>>(
+			new ConcurrentHashMap<String, ObjWithLock<Set<ChannelContext<SessionContext, P, R>>>>());
 
 	/** 一个客户端在哪组组中 key: ChannelContext value: Set<groupid<?, ?, ?>. */
-	private ObjWithReadWriteLock<Map<ChannelContext<Ext, P, R>, ObjWithReadWriteLock<Set<String>>>> channelmap = new ObjWithReadWriteLock<Map<ChannelContext<Ext, P, R>, ObjWithReadWriteLock<Set<String>>>>(
-			new ConcurrentHashMap<ChannelContext<Ext, P, R>, ObjWithReadWriteLock<Set<String>>>());
+	private ObjWithLock<Map<ChannelContext<SessionContext, P, R>, ObjWithLock<Set<String>>>> channelmap = new ObjWithLock<Map<ChannelContext<SessionContext, P, R>, ObjWithLock<Set<String>>>>(
+			new ConcurrentHashMap<ChannelContext<SessionContext, P, R>, ObjWithLock<Set<String>>>());
 
 	/**
 	 * 与组解除绑定
@@ -54,17 +54,17 @@ public class Groups<Ext, P extends Packet, R>
 	 * @param <R> the generic type
 	 * @param channelContext the channel context
 	 */
-	public void unbind(ChannelContext<Ext, P, R> channelContext)
+	public void unbind(ChannelContext<SessionContext, P, R> channelContext)
 	{
 		Lock lock = channelmap.getLock().writeLock();
 
 		try
 		{
-			ObjWithReadWriteLock<Set<String>> set = null;
+			ObjWithLock<Set<String>> set = null;
 			try
 			{
 				lock.lock();
-				Map<ChannelContext<Ext, P, R>, ObjWithReadWriteLock<Set<String>>> m = channelmap.getObj();
+				Map<ChannelContext<SessionContext, P, R>, ObjWithLock<Set<String>>> m = channelmap.getObj();
 				set = m.get(channelContext);
 				m.remove(channelContext);
 			} catch (Exception e)
@@ -103,9 +103,9 @@ public class Groups<Ext, P extends Packet, R>
 	 * @author: tanyaowu
 	 * @创建时间:　2016年11月17日 下午4:10:59
 	 */
-	private void unbind(String groupid, ChannelContext<Ext, P, R> channelContext)
+	private void unbind(String groupid, ChannelContext<SessionContext, P, R> channelContext)
 	{
-		ObjWithReadWriteLock<Set<ChannelContext<Ext, P, R>>> set = groupmap.getObj().get(groupid);
+		ObjWithLock<Set<ChannelContext<SessionContext, P, R>>> set = groupmap.getObj().get(groupid);
 
 		if (set != null)
 		{
@@ -151,17 +151,17 @@ public class Groups<Ext, P extends Packet, R>
 	 * @author: tanyaowu
 	 * @创建时间:　2016年11月17日 下午2:25:46
 	 */
-	public void bind(String groupid, ChannelContext<Ext, P, R> channelContext)
+	public void bind(String groupid, ChannelContext<SessionContext, P, R> channelContext)
 	{
 		Lock lock1 = groupmap.getLock().writeLock();
-		ObjWithReadWriteLock<Set<ChannelContext<Ext, P, R>>> channelContexts = null;
+		ObjWithLock<Set<ChannelContext<SessionContext, P, R>>> channelContexts = null;
 		try
 		{
 			lock1.lock();
 			channelContexts = groupmap.getObj().get(groupid);
 			if (channelContexts == null)
 			{
-				channelContexts = new ObjWithReadWriteLock<Set<ChannelContext<Ext, P, R>>>(new HashSet<ChannelContext<Ext, P, R>>());
+				channelContexts = new ObjWithLock<Set<ChannelContext<SessionContext, P, R>>>(new HashSet<ChannelContext<SessionContext, P, R>>());
 			}
 			groupmap.getObj().put(groupid, channelContexts);
 		} catch (Exception e)
@@ -189,14 +189,14 @@ public class Groups<Ext, P extends Packet, R>
 		}
 
 		Lock lock2 = channelmap.getLock().writeLock();
-		ObjWithReadWriteLock<Set<String>> groups = null;// = channelmap.getObj().get(channelContext);
+		ObjWithLock<Set<String>> groups = null;// = channelmap.getObj().get(channelContext);
 		try
 		{
 			lock2.lock();
 			groups = channelmap.getObj().get(channelContext);
 			if (groups == null)
 			{
-				groups = new ObjWithReadWriteLock<Set<String>>(new HashSet<String>());
+				groups = new ObjWithLock<Set<String>>(new HashSet<String>());
 			}
 			channelmap.getObj().put(channelContext, groups);
 		} catch (Exception e)
@@ -230,9 +230,9 @@ public class Groups<Ext, P extends Packet, R>
 	 * @param groupid the groupid
 	 * @return the obj with read write lock
 	 */
-	public ObjWithReadWriteLock<Set<ChannelContext<Ext, P, R>>> clients(String groupid)
+	public ObjWithLock<Set<ChannelContext<SessionContext, P, R>>> clients(String groupid)
 	{
-		ObjWithReadWriteLock<Set<ChannelContext<Ext, P, R>>> set = groupmap.getObj().get(groupid);
+		ObjWithLock<Set<ChannelContext<SessionContext, P, R>>> set = groupmap.getObj().get(groupid);
 		return set;
 	}
 
@@ -245,9 +245,9 @@ public class Groups<Ext, P extends Packet, R>
 	 * @创建时间:　2016年11月17日 下午4:31:27
 	 *
 	 */
-	public ObjWithReadWriteLock<Set<String>> groups(ChannelContext<Ext, P, R> channelContext)
+	public ObjWithLock<Set<String>> groups(ChannelContext<SessionContext, P, R> channelContext)
 	{
-		ObjWithReadWriteLock<Set<String>> set = channelmap.getObj().get(channelContext);
+		ObjWithLock<Set<String>> set = channelmap.getObj().get(channelContext);
 		return set;
 	}
 

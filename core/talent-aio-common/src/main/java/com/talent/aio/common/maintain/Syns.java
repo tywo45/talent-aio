@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
-import com.talent.aio.common.ObjWithReadWriteLock;
+import com.talent.aio.common.ObjWithLock;
 import com.talent.aio.common.intf.Packet;
 
 /**
@@ -18,11 +18,11 @@ import com.talent.aio.common.intf.Packet;
  *  (1) | 2017年1月12日 | tanyaowu | 新建类
  *
  */
-public class Syns<Ext, P extends Packet, R>
+public class Syns<SessionContext, P extends Packet, R>
 {
 
 	/** remoteAndChannelContext key: "ip:port" value: ChannelContext. */
-	private ObjWithReadWriteLock<Map<Integer, P>> map = new ObjWithReadWriteLock<Map<Integer, P>>(new HashMap<Integer, P>());
+	private ObjWithLock<Map<Integer, P>> map = new ObjWithLock<Map<Integer, P>>(new HashMap<Integer, P>());
 
 	/**
 	 * Adds the.
@@ -92,7 +92,7 @@ public class Syns<Ext, P extends Packet, R>
 	 *
 	 * @return the map
 	 */
-	public ObjWithReadWriteLock<Map<Integer, P>> getMap()
+	public ObjWithLock<Map<Integer, P>> getMap()
 	{
 		return map;
 	}

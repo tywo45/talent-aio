@@ -25,18 +25,29 @@ import com.talent.aio.common.intf.Packet;
  *  (1) | 2016年12月20日 | tanyaowu | 新建类
  *
  */
-public interface ClientAioListener <Ext, P extends Packet, R> extends AioListener<Ext, P, R> 
+public interface ClientAioListener <SessionContext, P extends Packet, R> extends AioListener<SessionContext, P, R> 
 {
 
 	/**
-	 * 重连后触发的方法
-	 * @param newChannelContext
-	 * @param initChannelContext
+	 * 重连后触发本方法
+	 * @param channelContext
+	 * @param isConnected true: 表示重连成功，false: 表示重连失败
 	 * @return
 	 *
 	 * @author: tanyaowu
-	 * @创建时间:　2017年1月11日 下午3:04:17
+	 * @创建时间:　2017年2月3日 上午9:58:01
 	 *
 	 */
-	boolean onAfterReconnected(ChannelContext<Ext, P, R> newChannelContext, ChannelContext<Ext, P, R> initChannelContext);
+//	void onAfterReconnected(ChannelContext<SessionContext, P, R> channelContext, boolean isConnected) throws Exception;
+	
+//	/**
+//	 * 连接失败后触发的方法
+//	 * @param channelContext
+//	 * @param isReconnect 是否是重连
+//	 * @param throwable 有可能是null
+//	 * @author: tanyaowu
+//	 * @创建时间:　2017年2月2日 下午7:46:45
+//	 *
+//	 */
+//	void onFailConnected(ChannelContext<SessionContext, P, R> channelContext, boolean isReconnect, java.lang.Throwable throwable);
 }

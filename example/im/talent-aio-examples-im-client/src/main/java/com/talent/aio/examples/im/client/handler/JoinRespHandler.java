@@ -8,12 +8,11 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talent.aio.common.maintain.ClientNodes;
 import com.talent.aio.examples.im.client.ui.JFrameMain;
 import com.talent.aio.examples.im.common.ImPacket;
-import com.talent.aio.examples.im.common.bs.JoinRespBody;
-import com.talent.aio.examples.im.common.json.Json;
-import com.talent.aio.examples.im.common.vo.JoinGroupResultVo;
+import com.talent.aio.examples.im.common.ImSessionContext;
+import com.talent.aio.examples.im.common.packets.JoinGroupResult;
+import com.talent.aio.examples.im.common.packets.JoinRespBody;
 
 /**
  * 
@@ -33,7 +32,7 @@ import com.talent.aio.examples.im.common.vo.JoinGroupResultVo;
  * </tbody>
  * </table>
  */
-public class JoinRespHandler implements ImBsAioHandlerIntf
+public class JoinRespHandler implements ImAioHandlerIntf
 {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(JoinRespHandler.class);
@@ -58,7 +57,7 @@ public class JoinRespHandler implements ImBsAioHandlerIntf
 //	public Map<String, Object> onReceived(ImReqPacket packet, ChannelContext<ImClientChannelContextExt> channelContext) throws Exception
 //	{
 //
-//		ImClientChannelContextExt ext = channelContext.getExt();
+//		ImClientChannelContextExt ext = channelContext.getSessionContext();
 //		String bodyStr = null;
 //		if (packet.getBody() != null)
 //		{
@@ -84,7 +83,7 @@ public class JoinRespHandler implements ImBsAioHandlerIntf
 //	}
 
 	/** 
-	 * @see com.talent.aio.examples.im.client.handler.ImBsAioHandlerIntf#handler(com.talent.aio.examples.im.common.ImPacket, com.talent.aio.common.ChannelContext)
+	 * @see com.talent.aio.examples.im.client.handler.ImAioHandlerIntf#handler(com.talent.aio.examples.im.common.ImPacket, com.talent.aio.common.ChannelContext)
 	 * 
 	 * @param packet
 	 * @param channelContext
@@ -95,34 +94,31 @@ public class JoinRespHandler implements ImBsAioHandlerIntf
 	 * 
 	 */
 	@Override
-	public Object handler(ImPacket packet, com.talent.aio.common.ChannelContext<Object, ImPacket, Object> channelContext) throws Exception
+	public Object handler(ImPacket packet, com.talent.aio.common.ChannelContext<ImSessionContext, ImPacket, Object> channelContext) throws Exception
 	{
-
-		String bodyStr = null;
-		if (packet.getBody() != null)
+		if (packet.getBody() == null)
 		{
-			bodyStr = new String(packet.getBody(), ImPacket.CHARSET);
+			throw new Exception("body is null");
 		}
-		JoinRespBody body = Json.toBean(bodyStr, JoinRespBody.class);
+		
+		JoinRespBody respBody = JoinRespBody.parseFrom(packet.getBody());
 		
 		
-		
-		
-		if (Objects.equals(JoinGroupResultVo.Code.OK, body.getResult().getCode()))
+		if (Objects.equals(JoinGroupResult.JOIN_GROUP_RESULT_OK, respBody.getResult()))
 		{
 			
-			String group = body.getGroup();
+			String group = respBody.getGroup();
 //			channelContext.getGroupContext().getGroups().bind(group, channelContext);
 			com.talent.aio.common.Aio.bindGroup(channelContext, group);
 			//			log.info("join group {}", group);
-			String xx = ClientNodes.getKey(channelContext) + "进入组:" + group;
-			JFrameMain.getInstance().getMsgTextArea().append(xx + System.lineSeparator());
+//			String xx = ClientNodes.getKey(channelContext) + "进入组:" + group;
+//			JFrameMain.getInstance().getMsgTextArea().append(xx + System.lineSeparator());
 			//顺利进入组
 		} else
 		{
 			//被拒绝
 			//			log.error("refused to join in group {}", body.getGroup());
-			String xx = ClientNodes.getKey(channelContext) + "被拒绝进入组" + body.getGroup();
+			String xx = channelContext + "被拒绝进入组" + respBody.getGroup();
 			JFrameMain.getInstance().getMsgTextArea().append(xx + System.lineSeparator());
 		}
 		

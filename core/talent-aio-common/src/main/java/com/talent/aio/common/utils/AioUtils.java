@@ -1,14 +1,3 @@
-/**
- * **************************************************************************
- *
- * @说明: 
- * @项目名称: talent-aio-common
- *
- * @author: tanyaowu 
- * @创建时间: 2016年11月17日 上午11:10:22
- *
- * **************************************************************************
- */
 package com.talent.aio.common.utils;
 
 import java.nio.channels.AsynchronousSocketChannel;
@@ -50,19 +39,19 @@ public class AioUtils
 
 	}
 
-	public static <Ext, P extends Packet, R> boolean checkBeforeIO(ChannelContext<Ext, P, R> channelContext)
+	public static <SessionContext, P extends Packet, R> boolean checkBeforeIO(ChannelContext<SessionContext, P, R> channelContext)
 	{
 		AsynchronousSocketChannel asynchronousSocketChannel = channelContext.getAsynchronousSocketChannel();
 		if (!asynchronousSocketChannel.isOpen())
 		{
-			log.error("asynchronousSocketChannel is not open, {}", channelContext.toString());
+			log.warn("asynchronousSocketChannel is not open, {}", channelContext.toString());
 			Aio.close(channelContext, "asynchronousSocketChannel is not open");
 			return false;
 		}
 		return true;
 	}
 
-	public static <Ext, P extends Packet, R> SendRunnable<Ext, P, R> selectSendRunnable(ChannelContext<Ext, P, R> channelContext, Packet packet)
+	public static <SessionContext, P extends Packet, R> SendRunnable<SessionContext, P, R> selectSendRunnable(ChannelContext<SessionContext, P, R> channelContext, Packet packet)
 	{
 //		byte priority = packet.getPriority();
 //		if (priority == com.talent.aio.common.intf.Packet.PRIORITY_HIGH)
@@ -74,7 +63,7 @@ public class AioUtils
 //		}
 	}
 
-	public static <Ext, P extends Packet, R> SynThreadPoolExecutor<SynRunnableIntf> selectSendExecutor(ChannelContext<Ext, P, R> channelContext, Packet packet)
+	public static <SessionContext, P extends Packet, R> SynThreadPoolExecutor<SynRunnableIntf> selectSendExecutor(ChannelContext<SessionContext, P, R> channelContext, Packet packet)
 	{
 //		byte priority = packet.getPriority();
 //		if (priority == com.talent.aio.common.intf.Packet.PRIORITY_HIGH)
@@ -86,7 +75,7 @@ public class AioUtils
 //		}
 	}
 
-	public static <Ext, P extends Packet, R> HandlerRunnable<Ext, P, R> selectHandlerRunnable(ChannelContext<Ext, P, R> channelContext, Packet packet)
+	public static <SessionContext, P extends Packet, R> HandlerRunnable<SessionContext, P, R> selectHandlerRunnable(ChannelContext<SessionContext, P, R> channelContext, Packet packet)
 	{
 //		byte priority = packet.getPriority();
 //		if (priority == com.talent.aio.common.intf.Packet.PRIORITY_HIGH)
@@ -98,7 +87,7 @@ public class AioUtils
 //		}
 	}
 
-	public static <Ext, P extends Packet, R> SynThreadPoolExecutor<SynRunnableIntf> selectHandlerExecutor(ChannelContext<Ext, P, R> channelContext, Packet packet)
+	public static <SessionContext, P extends Packet, R> SynThreadPoolExecutor<SynRunnableIntf> selectHandlerExecutor(ChannelContext<SessionContext, P, R> channelContext, Packet packet)
 	{
 //		byte priority = packet.getPriority();
 //		if (priority == com.talent.aio.common.intf.Packet.PRIORITY_HIGH)

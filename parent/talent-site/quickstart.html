@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<!-- saved from url=(0041)http://v3.bootcss.com/examples/dashboard/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="tywo45@163.com">
+    <link rel="icon" href="./res/img/talent-aio.ico">
+	
+	<meta name="description" content="talent-aio是基于java aio实现的即时通讯框架，功能类似netty和mina，但极易掌握，不需要各种学习才能入门，只需要花上半天学习helloworld就能比较好地掌握并实现一个性能极好的即时应用，并且天生不会有粘包问题；talent-aio性能极好：可同时支持10万级tcp长连接，彻底甩开当年的c10K问题；每秒可收发处理138万以上条消息，每秒收发的消息大小可达137M以上，收发200万条消息，只需要1440毫秒" />
+	<meta name="keywords" content="java, rpc, aio, nio, 高性能, 即时通讯, 聊天, im, netty, mina, socket, tcp, tcp长连接" />
+
+
+    <title>talent-aio: 让天下没有难开发的即时通讯</title>
+
+	<link href="./res/highlight/Styles/shCore.css" rel="stylesheet" type="text/css" />
+	<link href="./res/highlight/Styles/shThemeEclipse.css" rel="stylesheet" type="text/css" />
+	
+    <!-- Bootstrap core CSS -->
+    <link href="./res/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="./res/doc.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <script src="./res/ie-emulation-modes-warning.js"></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+	
+	<style>
+  
+</style>
+	
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation" >
+      <div class="container">
+        <!--
+		<div class="navbar-header">
+          <a class="navbar-" href="#"><img src='./res/img/talent-aio.png' title='talent-aio: 让天下没有难开发的即时通讯'></a>
+        </div>
+		-->
+		
+		<div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar" id="nav_list_btn">
+          </button>
+          <a class="navbar-brand" href="./index.html">talent-aio 让天下没有难开发的即时通讯</a>
+        </div>		
+		
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right" id="nav_list">
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    
+      
+	  
+	  
+	  
+	<div class="jumbotron">
+	  <div class="container-fluid main_div">		
+		
+		
+		
+		
+		<ul id="myTab" class="nav nav-tabs">
+			<li class="active"><a href="#quick_ntroduce" data-toggle="tab">业务简介(4分钟)</a></li>
+			<li><a href="#quick_common" data-toggle="tab">公共模块(14分钟)</a></li>
+			<li><a href="#quick_server" data-toggle="tab">服务端模块(6分钟)</a></li>
+			<li><a href="#quick_client" data-toggle="tab">客户端模块(6分钟)</a></li>
+		</ul>
+
+		<div id="myTabContent" class="tab-content">
+			<div class="tab-pane fade in active" id="quick_ntroduce">
+			<div class=" bs-callout bs-callout-info" style=''>
+				<h4>本例子演示的是一个典型的TCP长连接应用，代码位于example/helloworld目录中</h4>
+				<ul class="masthead-links" style="font-size:14pt;">
+				  <li>
+					服务端和客户端的消息协议比较简单，消息头为4个字节，用以表示消息体的长度，消息体为一个字符串的byte[]
+				  </li>
+				  <li>
+					服务端先启动，监听6789端口
+				  </li>
+				  <li>
+					客户端连接到服务端后，会主动向服务器发送一条消息
+				  </li>
+				  <li>
+					服务器收到消息后会回应一条消息
+				  </li>
+				  <li>
+					之后，框架层会自动从客户端发心跳到服务器，服务器也会检测心跳有没有超时
+				  </li>
+				  
+				</ul>
+			</div>
+			
+			
+			</div>
+			
+			
+			<div class="tab-pane fade" id="quick_common">
+				<ol>
+					
+					<li class="doc_header2">引入依赖</li>
+					<textarea class="is_code" codestyle="brush:xml">
+		<dependency>
+			<groupId>com.talent-aio</groupId>
+			<artifactId>talent-aio-common</artifactId>
+			<version>1.0.2.v20170217-SNAPSHOT</version>
+		</dependency>
+					</textarea>
+					
+					
+					<li class="doc_header2">定义业务消息包结构</li>
+					注：有时候服务器和客户端的业务消息包结构不一样，这种情况下，消息包的定义就不要放在公共模块
+					<textarea class="is_code" codestyle="brush:java">
+public class HelloPacket extends Packet
+{
+	public static final int HEADER_LENGHT = 4;//消息头的长度
+	public static final String CHARSET = "utf-8";
+	private byte[] body;
+
+	/**
+	 * @return the body
+	 */
+	public byte[] getBody()
+	{
+		return body;
+	}
+
+	/**
+	 * @param body the body to set
+	 */
+	public void setBody(byte[] body)
+	{
+		this.body = body;
+	}
+}
+					</textarea>
+					
+					
+					<li class="doc_header2">编码&解码</li>
+					注：有时候服务器端和客户端的编码解码算法不一样，这个时候就不要以公共模块中完成编码和解码的代码，而是分别放在服务器端和客户端完成。
+					<textarea class="is_code" codestyle="brush:java">
+public abstract class HelloAbsAioHandler implements AioHandler<Object, HelloPacket, Object>
+{
+	/**
+	 * 编码：把业务消息包编码为可以发送的ByteBuffer
+	 */
+	@Override
+	public ByteBuffer encode(HelloPacket packet, ChannelContext<Object, HelloPacket, Object> channelContext)
+	{
+		byte[] body = packet.getBody();
+		int bodyLen = 0;
+		if (body != null)
+		{
+			bodyLen = body.length;
+		}
+
+		int allLen = HelloPacket.HEADER_LENGHT + bodyLen;
+		ByteBuffer buffer = ByteBuffer.allocate(allLen);
+		buffer.order(channelContext.getGroupContext().getByteOrder());
+
+		buffer.putInt(bodyLen);
+
+		if (body != null)
+		{
+			buffer.put(body);
+		}
+		return buffer;
+	}
+
+	/**
+	 * 解码：把接收到的ByteBuffer，解码成应用可以识别的业务消息包
+	 */
+	@Override
+	public HelloPacket decode(ByteBuffer buffer, ChannelContext<Object, HelloPacket, Object> channelContext) throws AioDecodeException
+	{
+		int readableLength = buffer.limit() - buffer.position();
+		if (readableLength < HelloPacket.HEADER_LENGHT)
+		{
+			return null;
+		}
+
+		int bodyLength = buffer.getInt();
+
+		if (bodyLength < 0)
+		{
+			throw new AioDecodeException("bodyLength [" + bodyLength + "] is not right, remote:" + channelContext.getClientNode());
+		}
+
+		int neededLength = HelloPacket.HEADER_LENGHT + bodyLength;
+		int test = readableLength - neededLength;
+		if (test < 0) // 不够消息体长度(剩下的buffe组不了消息体)
+		{
+			return null;
+		} else
+		{
+			HelloPacket imPacket = new HelloPacket();
+			if (bodyLength > 0)
+			{
+				byte[] dst = new byte[bodyLength];
+				buffer.get(dst);
+				imPacket.setBody(dst);
+			}
+			return imPacket;
+		}
+	}
+}
+					</textarea>
+					
+					<li class="doc_header2">定义一下双方约定的端口</li>
+					
+					<textarea class="is_code" codestyle="brush:java">
+public interface Const
+{
+	public static final int PORT = 6789;
+}
+					</textarea>
+					
+				</ol>
+
+				
+				
+				
+				
+			</div>
+			<div class="tab-pane fade" id="quick_server">
+				<ol>
+					
+					<li class="doc_header2">引入依赖</li>
+					<textarea class="is_code" codestyle="brush:xml">
+		<dependency>
+			<groupId>com.talent-aio</groupId>
+			<artifactId>talent-aio-server</artifactId>
+			<version>1.0.2.v20170217-SNAPSHOT</version>
+		</dependency>
+					</textarea>
+					
+					
+					<li class="doc_header2">HelloServerAioHandler</li>
+					注：此处继承自HelloAbsAioHandler，父类已经完成编码和解码的工作
+					<textarea class="is_code" codestyle="brush:java">
+public class HelloServerAioHandler extends HelloAbsAioHandler implements ServerAioHandler<Object, HelloPacket, Object>
+{
+	/** 
+	 * 处理消息
+	 */
+	@Override
+	public Object handler(HelloPacket packet, ChannelContext<Object, HelloPacket, Object> channelContext) throws Exception
+	{
+		byte[] body = packet.getBody();
+		if (body != null)
+		{
+			String str = new String(body, HelloPacket.CHARSET);
+			System.out.println("收到消息：" + str);
+
+			HelloPacket resppacket = new HelloPacket();
+			resppacket.setBody(("收到了你的消息，你的消息是:" + str).getBytes(HelloPacket.CHARSET));
+			Aio.send(channelContext, resppacket);
+		}
+		return null;
+	}
+}
+					</textarea>
+					
+					
+					<li class="doc_header2">启动程序</li>
+					
+					<textarea class="is_code" codestyle="brush:java">
+public class HelloServerStarter
+{
+	static ServerGroupContext<Object, HelloPacket, Object> serverGroupContext = null;
+	static AioServer<Object, HelloPacket, Object> aioServer = null; //可以为空
+	static ServerAioHandler<Object, HelloPacket, Object> aioHandler = null;
+	static ServerAioListener<Object, HelloPacket, Object> aioListener = null;
+	static String serverIp = null;
+	static int serverPort = com.talent.aio.examples.helloworld.common.Const.PORT;
+
+	public static void main(String[] args) throws IOException
+	{
+		aioHandler = new HelloServerAioHandler();
+		aioListener = null; //可以为空
+		serverGroupContext = new ServerGroupContext<>(aioHandler, aioListener);
+		aioServer = new AioServer<>(serverGroupContext);
+		aioServer.start(serverIp, serverPort);
+	}
+}
+					</textarea>
+					
+					
+				</ol>
+			</div>
+			<div class="tab-pane fade" id="quick_client">
+				<ol>
+					
+					<li class="doc_header2">引入依赖</li>
+					<textarea class="is_code" codestyle="brush:xml">
+		<dependency>
+			<groupId>com.talent-aio</groupId>
+			<artifactId>talent-aio-client</artifactId>
+			<version>1.0.2.v20170217-SNAPSHOT</version>
+		</dependency>
+					</textarea>
+					
+					
+					<li class="doc_header2">HelloClientAioHandler</li>
+					注：此处继承自HelloAbsAioHandler，父类已经完成编码和解码的工作
+					<textarea class="is_code" codestyle="brush:java">
+public class HelloClientAioHandler extends HelloAbsAioHandler implements ClientAioHandler<Object, HelloPacket, Object>
+{
+	/** 
+	 * 处理消息
+	 */
+	@Override
+	public Object handler(HelloPacket packet, ChannelContext<Object, HelloPacket, Object> channelContext) throws Exception
+	{
+		byte[] body = packet.getBody();
+		if (body != null)
+		{
+			String str = new String(body, HelloPacket.CHARSET);
+			System.out.println("收到消息：" + str);
+		}
+
+		return null;
+	}
+
+	private static HelloPacket heartbeatPacket = new HelloPacket();
+
+	/** 
+	 * 此方法如果返回null，框架层面则不会发心跳；如果返回非null，框架层面会定时发本方法返回的消息包
+	 */
+	@Override
+	public HelloPacket heartbeatPacket()
+	{
+		return heartbeatPacket;
+	}
+}
+					</textarea>
+					
+					
+					<li class="doc_header2">启动程序</li>
+					
+					<textarea class="is_code" codestyle="brush:java">
+public class HelloClientStarter
+{
+	private static Node serverNode = null;
+	private static AioClient<Object, HelloPacket, Object> aioClient;
+	private static ClientGroupContext<Object, HelloPacket, Object> clientGroupContext = null;
+	private static ClientAioHandler<Object, HelloPacket, Object> aioClientHandler = null;
+	private static ClientAioListener<Object, HelloPacket, Object> aioListener = null;
+	private static ReconnConf<Object, HelloPacket, Object> reconnConf = new ReconnConf<Object, HelloPacket, Object>(5000L);//用来自动连接的，不想自动连接请传null
+
+	public static void main(String[] args) throws Exception
+	{
+		String serverIp = "127.0.0.1";
+		int serverPort = Const.PORT;
+		serverNode = new Node(serverIp, serverPort);
+		aioClientHandler = new HelloClientAioHandler();
+		aioListener = null;
+
+		clientGroupContext = new ClientGroupContext<>(aioClientHandler, aioListener, reconnConf);
+		aioClient = new AioClient<>(clientGroupContext);
+
+		ClientChannelContext<Object, HelloPacket, Object> clientChannelContext = aioClient.connect(serverNode);
+
+		//以下内容不是启动的过程，而是属于发消息的过程
+		HelloPacket packet = new HelloPacket();
+		packet.setBody("hello world".getBytes(HelloPacket.CHARSET));
+		Aio.send(clientChannelContext, packet);
+	}
+}
+					</textarea>
+					
+					
+				</ol>
+			</div>
+		</div>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+
+	  </div>
+  </div>
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="./res/jquery.min.js"></script>
+    <script src="./res/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="./res/ie10-viewport-bug-workaround.js"></script>
+	
+	<script type="text/javascript" src="./res/highlight/Scripts/shCore.js"></script>
+	<script type="text/javascript" src="./res/highlight/Scripts/shBrushJScript.js"></script>
+	<script type="text/javascript" src="./res/highlight/Scripts/shBrushJava.js"></script>
+	<script type="text/javascript" src="./res/highlight/Scripts/shBrushXml.js"></script>
+
+	
+	
+	<script type="text/javascript" src="./res/highlight/init.js"></script>
+	
+	<script type="text/javascript" language="javascript">   
+		
+	</script>
+  
+</body></html>

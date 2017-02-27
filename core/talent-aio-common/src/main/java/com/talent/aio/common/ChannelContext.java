@@ -3,13 +3,15 @@ package com.talent.aio.common;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talent.aio.common.intf.Packet;
-import com.talent.aio.common.task.CloseRunnable;
+import com.talent.aio.common.maintain.MaintainUtils;
 import com.talent.aio.common.task.DecodeRunnable;
 import com.talent.aio.common.task.HandlerRunnable;
 import com.talent.aio.common.task.SendRunnable;
@@ -23,35 +25,41 @@ import com.talent.aio.common.utils.SystemTimer;
  * @操作列表  编号	| 操作时间	| 操作人员	 | 操作说明
  *  (1) | 2016年11月14日 | tanyaowu | 新建类
  */
-public abstract class ChannelContext<Ext, P extends Packet, R>
+public abstract class ChannelContext<SessionContext, P extends Packet, R>
 {
 	private static Logger log = LoggerFactory.getLogger(ChannelContext.class);
 
-	private static java.util.concurrent.atomic.AtomicLong idAtomicLong = new AtomicLong();
-
+	private static final AtomicLong ID_SEQ = new AtomicLong();
+	
+	public static final String UNKNOWN_ADDRESS_IP = "$UNKNOWN";
+	
+	public static final AtomicInteger UNKNOWN_ADDRESS_PORT_SEQ = new AtomicInteger();
+	
 	//	private java.util.concurrent.Semaphore sendSemaphore = new Semaphore(1);
 
-	private GroupContext<Ext, P, R> groupContext = null;
+	private GroupContext<SessionContext, P, R> groupContext = null;
 
-	private DecodeRunnable<Ext, P, R> decodeRunnable = null;
+	private DecodeRunnable<SessionContext, P, R> decodeRunnable = null;
 
-	private CloseRunnable<Ext, P, R> closeRunnable = null;
-//	private HandlerRunnable<Ext, P, R> handlerRunnableHighPrior = null;
-	private HandlerRunnable<Ext, P, R> handlerRunnableNormPrior = null;
+//	private CloseRunnable<SessionContext, P, R> closeRunnable = null;
+//	private HandlerRunnable<SessionContext, P, R> handlerRunnableHighPrior = null;
+	private HandlerRunnable<SessionContext, P, R> handlerRunnableNormPrior = null;
 
-//	private SendRunnable<Ext, P, R> sendRunnableHighPrior = null;
-	private SendRunnable<Ext, P, R> sendRunnableNormPrior = null;
-
-	private ReadCompletionHandler<Ext, P, R> readCompletionHandler = new ReadCompletionHandler<>(this);
-	private WriteCompletionHandler<Ext, P, R> writeCompletionHandler = new WriteCompletionHandler<>(this);
+//	private SendRunnable<SessionContext, P, R> sendRunnableHighPrior = null;
+	private SendRunnable<SessionContext, P, R> sendRunnableNormPrior = null;
+	private ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
+	private ReadCompletionHandler<SessionContext, P, R> readCompletionHandler = null;//new ReadCompletionHandler<>(this);
+	private WriteCompletionHandler<SessionContext, P, R> writeCompletionHandler = null;//new WriteCompletionHandler<>(this);
 	
-	private int reConnCount = 0;//重连次数，连接成功后，此值会被重置0
+	private int reconnCount = 0;//连续重连次数，连接成功后，此值会被重置0
 
-	//	private WriteCompletionHandler<Ext, P, R> writeCompletionHandler = new WriteCompletionHandler<>();
+	//	private WriteCompletionHandler<SessionContext, P, R> writeCompletionHandler = new WriteCompletionHandler<>();
 
 	private String userid;
 
-	private boolean isClosed = false;
+	private boolean isClosed = true;
+	
+	private boolean isRemoved = false;
 
 	private Stat stat = new Stat();
 
@@ -69,11 +77,13 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/** The asynchronous socket channel. */
 	private AsynchronousSocketChannel asynchronousSocketChannel;
 
-	private Ext ext;
+	private SessionContext sessionContext;
 
-	private long id = idAtomicLong.incrementAndGet();
+	private long id = ID_SEQ.incrementAndGet();
 
 	private Node clientNode;
+	
+	private Node serverNode;
 
 	/**
 	 * @param groupContext
@@ -83,11 +93,13 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	 * @创建时间:　2016年11月16日 下午1:13:56
 	 * 
 	 */
-	public ChannelContext(GroupContext<Ext, P, R> groupContext, AsynchronousSocketChannel asynchronousSocketChannel)
+	public ChannelContext(GroupContext<SessionContext, P, R> groupContext, AsynchronousSocketChannel asynchronousSocketChannel)
 	{
 		super();
-		this.setAsynchronousSocketChannel(asynchronousSocketChannel);
 		this.setGroupContext(groupContext);
+		this.setAsynchronousSocketChannel(asynchronousSocketChannel);
+		this.readCompletionHandler = new ReadCompletionHandler<>(this);
+		this.writeCompletionHandler = new WriteCompletionHandler<>(this);
 	}
 
 	/**
@@ -100,7 +112,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	 * @创建时间:　2016年12月6日 下午12:21:41
 	 *
 	 */
-	public abstract Node getClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException;
+	public abstract Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException;
 
 	@Override
 	public String toString()
@@ -119,9 +131,9 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @return the ext
 	 */
-	public Ext getExt()
+	public SessionContext getSessionContext()
 	{
-		return ext;
+		return sessionContext;
 	}
 
 	/**
@@ -151,23 +163,32 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 		{
 			try
 			{
-				clientNode = getClientNode(asynchronousSocketChannel);
+				Node clientNode = createClientNode(asynchronousSocketChannel);
+				setClientNode(clientNode);
 			} catch (IOException e)
 			{
-				log.error(e.toString(), e);
+				log.info(e.toString(), e);
+				assignAnUnknownClientNode();
 			}
 		} else
 		{
-			clientNode = null;
+			assignAnUnknownClientNode();
 		}
+	}
+	
+
+	private void assignAnUnknownClientNode()
+	{
+		Node clientNode = new Node(UNKNOWN_ADDRESS_IP, UNKNOWN_ADDRESS_PORT_SEQ.incrementAndGet());
+		setClientNode(clientNode);
 	}
 
 	/**
 	 * @param ext the ext to set
 	 */
-	public void setExt(Ext ext)
+	public void setSessionContext(SessionContext sessionContext)
 	{
-		this.ext = ext;
+		this.sessionContext = sessionContext;
 	}
 
 	/**
@@ -181,15 +202,37 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @param remoteNode the remoteNode to set
 	 */
-	public void setClientNode(Node clientNode)
+	private void setClientNode(Node clientNode)
 	{
+		if (this.clientNode != null)
+		{
+			try
+			{
+				groupContext.getClientNodes().remove(this);
+			} catch (Exception e1)
+			{
+				log.error(e1.toString(), e1);
+			}
+		}
+		
 		this.clientNode = clientNode;
+		
+		if (this.clientNode != null)
+		{
+			try
+			{
+				groupContext.getClientNodes().put(this);
+			} catch (Exception e1)
+			{
+				log.error(e1.toString(), e1);
+			}
+		}
 	}
 
 	/**
 	 * @return the groupContext
 	 */
-	public GroupContext<Ext, P, R> getGroupContext()
+	public GroupContext<SessionContext, P, R> getGroupContext()
 	{
 		return groupContext;
 	}
@@ -197,14 +240,14 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @param groupContext the groupContext to set
 	 */
-	public void setGroupContext(GroupContext<Ext, P, R> groupContext)
+	public void setGroupContext(GroupContext<SessionContext, P, R> groupContext)
 	{
 		this.groupContext = groupContext;
 
 		if (groupContext != null)
 		{
 			decodeRunnable = new DecodeRunnable<>(this, groupContext.getDecodeExecutor());
-			closeRunnable = new CloseRunnable<>(this, null, null, groupContext.getCloseExecutor());
+//			closeRunnable = new CloseRunnable<>(this, null, null, groupContext.getCloseExecutor());
 
 //			handlerRunnableHighPrior = new HandlerRunnable<>(this, groupContext.getHandlerExecutorHighPrior());
 			handlerRunnableNormPrior = new HandlerRunnable<>(this, groupContext.getHandlerExecutorNormPrior());
@@ -212,15 +255,14 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 //			sendRunnableHighPrior = new SendRunnable<>(this, groupContext.getSendExecutorHighPrior());
 			sendRunnableNormPrior = new SendRunnable<>(this, groupContext.getSendExecutorNormPrior());
 
-			groupContext.getConnections().add(this);
-			groupContext.getClientNodes().put(this);
+			MaintainUtils.addToMaintain(this);
 		}
 	}
 
 	/**
 	 * @return the readCompletionHandler
 	 */
-	public ReadCompletionHandler<Ext, P, R> getReadCompletionHandler()
+	public ReadCompletionHandler<SessionContext, P, R> getReadCompletionHandler()
 	{
 		return readCompletionHandler;
 	}
@@ -228,7 +270,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @param readCompletionHandler the readCompletionHandler to set
 	 */
-	public void setReadCompletionHandler(ReadCompletionHandler<Ext, P, R> readCompletionHandler)
+	public void setReadCompletionHandler(ReadCompletionHandler<SessionContext, P, R> readCompletionHandler)
 	{
 		this.readCompletionHandler = readCompletionHandler;
 	}
@@ -236,7 +278,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @return the decodeRunnable
 	 */
-	public DecodeRunnable<Ext, P, R> getDecodeRunnable()
+	public DecodeRunnable<SessionContext, P, R> getDecodeRunnable()
 	{
 		return decodeRunnable;
 	}
@@ -244,7 +286,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @param decodeRunnable the decodeRunnable to set
 	 */
-	public void setDecodeRunnable(DecodeRunnable<Ext, P, R> decodeRunnable)
+	public void setDecodeRunnable(DecodeRunnable<SessionContext, P, R> decodeRunnable)
 	{
 		this.decodeRunnable = decodeRunnable;
 	}
@@ -252,7 +294,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 //	/**
 //	 * @return the handlerRunnableHighPrior
 //	 */
-//	public HandlerRunnable<Ext, P, R> getHandlerRunnableHighPrior()
+//	public HandlerRunnable<SessionContext, P, R> getHandlerRunnableHighPrior()
 //	{
 //		return handlerRunnableHighPrior;
 //	}
@@ -260,7 +302,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 //	/**
 //	 * @param handlerRunnableHighPrior the handlerRunnableHighPrior to set
 //	 */
-//	public void setHandlerRunnableHighPrior(HandlerRunnable<Ext, P, R> handlerRunnableHighPrior)
+//	public void setHandlerRunnableHighPrior(HandlerRunnable<SessionContext, P, R> handlerRunnableHighPrior)
 //	{
 //		this.handlerRunnableHighPrior = handlerRunnableHighPrior;
 //	}
@@ -268,7 +310,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @return the handlerRunnableNormPrior
 	 */
-	public HandlerRunnable<Ext, P, R> getHandlerRunnableNormPrior()
+	public HandlerRunnable<SessionContext, P, R> getHandlerRunnableNormPrior()
 	{
 		return handlerRunnableNormPrior;
 	}
@@ -276,7 +318,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @param handlerRunnableNormPrior the handlerRunnableNormPrior to set
 	 */
-	public void setHandlerRunnableNormPrior(HandlerRunnable<Ext, P, R> handlerRunnableNormPrior)
+	public void setHandlerRunnableNormPrior(HandlerRunnable<SessionContext, P, R> handlerRunnableNormPrior)
 	{
 		this.handlerRunnableNormPrior = handlerRunnableNormPrior;
 	}
@@ -284,7 +326,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 //	/**
 //	 * @return the sendRunnableHighPrior
 //	 */
-//	public SendRunnable<Ext, P, R> getSendRunnableHighPrior()
+//	public SendRunnable<SessionContext, P, R> getSendRunnableHighPrior()
 //	{
 //		return sendRunnableHighPrior;
 //	}
@@ -292,7 +334,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 //	/**
 //	 * @param sendRunnableHighPrior the sendRunnableHighPrior to set
 //	 */
-//	public void setSendRunnableHighPrior(SendRunnable<Ext, P, R> sendRunnableHighPrior)
+//	public void setSendRunnableHighPrior(SendRunnable<SessionContext, P, R> sendRunnableHighPrior)
 //	{
 //		this.sendRunnableHighPrior = sendRunnableHighPrior;
 //	}
@@ -300,7 +342,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @return the sendRunnableNormPrior
 	 */
-	public SendRunnable<Ext, P, R> getSendRunnableNormPrior()
+	public SendRunnable<SessionContext, P, R> getSendRunnableNormPrior()
 	{
 		return sendRunnableNormPrior;
 	}
@@ -308,7 +350,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @param sendRunnableNormPrior the sendRunnableNormPrior to set
 	 */
-	public void setSendRunnableNormPrior(SendRunnable<Ext, P, R> sendRunnableNormPrior)
+	public void setSendRunnableNormPrior(SendRunnable<SessionContext, P, R> sendRunnableNormPrior)
 	{
 		this.sendRunnableNormPrior = sendRunnableNormPrior;
 	}
@@ -316,7 +358,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	//	/**
 	//	 * @return the writeCompletionHandler
 	//	 */
-	//	public WriteCompletionHandler<Ext, P, R> getWriteCompletionHandler()
+	//	public WriteCompletionHandler<SessionContext, P, R> getWriteCompletionHandler()
 	//	{
 	//		return writeCompletionHandler;
 	//	}
@@ -324,7 +366,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	//	/**
 	//	 * @param writeCompletionHandler the writeCompletionHandler to set
 	//	 */
-	//	public void setWriteCompletionHandler(WriteCompletionHandler<Ext, P, R> writeCompletionHandler)
+	//	public void setWriteCompletionHandler(WriteCompletionHandler<SessionContext, P, R> writeCompletionHandler)
 	//	{
 	//		this.writeCompletionHandler = writeCompletionHandler;
 	//	}
@@ -359,23 +401,32 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	public void setClosed(boolean isClosed)
 	{
 		this.isClosed = isClosed;
+		if (isClosed)
+		{
+			if (clientNode == null || (!UNKNOWN_ADDRESS_IP.equals(clientNode.getIp())))
+			{
+				log.info("关闭前{}", this);
+				assignAnUnknownClientNode();
+				log.info("关闭后{}", this);
+			}
+		}
 	}
 
-	/**
-	 * @return the closeRunnable
-	 */
-	public CloseRunnable<Ext, P, R> getCloseRunnable()
-	{
-		return closeRunnable;
-	}
-
-	/**
-	 * @param closeRunnable the closeRunnable to set
-	 */
-	public void setCloseRunnable(CloseRunnable<Ext, P, R> closeRunnable)
-	{
-		this.closeRunnable = closeRunnable;
-	}
+//	/**
+//	 * @return the closeRunnable
+//	 */
+//	public CloseRunnable<SessionContext, P, R> getCloseRunnable()
+//	{
+//		return closeRunnable;
+//	}
+//
+//	/**
+//	 * @param closeRunnable the closeRunnable to set
+//	 */
+//	public void setCloseRunnable(CloseRunnable<SessionContext, P, R> closeRunnable)
+//	{
+//		this.closeRunnable = closeRunnable;
+//	}
 
 	/**
 	 * @return the stat
@@ -404,7 +455,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @return the writeCompletionHandler
 	 */
-	public WriteCompletionHandler<Ext, P, R> getWriteCompletionHandler()
+	public WriteCompletionHandler<SessionContext, P, R> getWriteCompletionHandler()
 	{
 		return writeCompletionHandler;
 	}
@@ -412,7 +463,7 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @param writeCompletionHandler the writeCompletionHandler to set
 	 */
-	public void setWriteCompletionHandler(WriteCompletionHandler<Ext, P, R> writeCompletionHandler)
+	public void setWriteCompletionHandler(WriteCompletionHandler<SessionContext, P, R> writeCompletionHandler)
 	{
 		this.writeCompletionHandler = writeCompletionHandler;
 	}
@@ -420,30 +471,30 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 	/**
 	 * @return the reConnCount
 	 */
-	public int getReConnCount()
+	public int getReconnCount()
 	{
-		return reConnCount;
+		return reconnCount;
 	}
 
 	/**
 	 * @param reConnCount the reConnCount to set
 	 */
-	public void setReConnCount(int reConnCount)
+	public void setReconnCount(int reconnCount)
 	{
-		this.reConnCount = reConnCount;
+		this.reconnCount = reconnCount;
 	}
 
 	public static class Stat
 	{
 		/**
-		 * 最近一次收消息的时间
+		 * 最近一次收到业务消息包的时间(一个完整的业务消息包，一部分消息不算)
 		 */
-		private long timeLatestReceivedMsg = SystemTimer.currentTimeMillis();
+		private long latestTimeOfReceivedPacket = SystemTimer.currentTimeMillis();
 
 		/**
-		 * 最近一次发消息的时间
+		 * 最近一次发送业务消息包的时间(一个完整的业务消息包，一部分消息不算)
 		 */
-		private long timeLatestSentMsg = SystemTimer.currentTimeMillis();
+		private long latestTimeOfSentPacket = SystemTimer.currentTimeMillis();
 		
 		/**
 		 * 连接关闭的时间
@@ -453,159 +504,159 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 		/**
 		 * 本连接已发送的字节数
 		 */
-		private AtomicLong countSentByte = new AtomicLong();
+		private AtomicLong sentBytes = new AtomicLong();
 
 		/**
 		 * 本连接已发送的packet数
 		 */
-		private AtomicLong countSentPacket = new AtomicLong();
+		private AtomicLong sentPackets = new AtomicLong();
 
 		/**
 		 * 本连接已处理的字节数
 		 */
-		private AtomicLong countHandledByte = new AtomicLong();
+		private AtomicLong handledBytes = new AtomicLong();
 
 		/**
 		 * 本连接已处理的packet数
 		 */
-		private AtomicLong countHandledPacket = new AtomicLong();
+		private AtomicLong handledPackets = new AtomicLong();
 
 		/**
 		 * 本连接已接收的字节数
 		 */
-		private AtomicLong countReceivedByte = new AtomicLong();
+		private AtomicLong receivedBytes = new AtomicLong();
 
 		/**
 		 * 本连接已接收的packet数
 		 */
-		private AtomicLong countReceivedPacket = new AtomicLong();
+		private AtomicLong receivedPackets = new AtomicLong();
 
 		/**
 		 * @return the timeLatestReceivedMsg
 		 */
-		public long getTimeLatestReceivedMsg()
+		public long getLatestTimeOfReceivedPacket()
 		{
-			return timeLatestReceivedMsg;
+			return latestTimeOfReceivedPacket;
 		}
 
 		/**
 		 * @param timeLatestReceivedMsg the timeLatestReceivedMsg to set
 		 */
-		public void setTimeLatestReceivedMsg(long timeLatestReceivedMsg)
+		public void setLatestTimeOfReceivedPacket(long latestTimeOfReceivedPacket)
 		{
-			this.timeLatestReceivedMsg = timeLatestReceivedMsg;
+			this.latestTimeOfReceivedPacket = latestTimeOfReceivedPacket;
 		}
 
 		/**
 		 * @return the timeLatestSentMsg
 		 */
-		public long getTimeLatestSentMsg()
+		public long getLatestTimeOfSentPacket()
 		{
-			return timeLatestSentMsg;
+			return latestTimeOfSentPacket;
 		}
 
 		/**
 		 * @param timeLatestSentMsg the timeLatestSentMsg to set
 		 */
-		public void setTimeLatestSentMsg(long timeLatestSentMsg)
+		public void setLatestTimeOfSentPacket(long latestTimeOfSentPacket)
 		{
-			this.timeLatestSentMsg = timeLatestSentMsg;
+			this.latestTimeOfSentPacket = latestTimeOfSentPacket;
 		}
 
 		/**
 		 * @return the countSentByte
 		 */
-		public AtomicLong getCountSentByte()
+		public AtomicLong getSentBytes()
 		{
-			return countSentByte;
+			return sentBytes;
 		}
 
 		/**
 		 * @param countSentByte the countSentByte to set
 		 */
-		public void setCountSentByte(AtomicLong countSentByte)
+		public void setSentBytes(AtomicLong sentBytes)
 		{
-			this.countSentByte = countSentByte;
+			this.sentBytes = sentBytes;
 		}
 
 		/**
 		 * @return the countSentPacket
 		 */
-		public AtomicLong getCountSentPacket()
+		public AtomicLong getSentPackets()
 		{
-			return countSentPacket;
+			return sentPackets;
 		}
 
 		/**
 		 * @param countSentPacket the countSentPacket to set
 		 */
-		public void setCountSentPacket(AtomicLong countSentPacket)
+		public void setSentPackets(AtomicLong sentPackets)
 		{
-			this.countSentPacket = countSentPacket;
+			this.sentPackets = sentPackets;
 		}
 
 		/**
 		 * @return the countHandledByte
 		 */
-		public AtomicLong getCountHandledByte()
+		public AtomicLong getHandledBytes()
 		{
-			return countHandledByte;
+			return handledBytes;
 		}
 
 		/**
 		 * @param countHandledByte the countHandledByte to set
 		 */
-		public void setCountHandledByte(AtomicLong countHandledByte)
+		public void setHandledBytes(AtomicLong countHandledByte)
 		{
-			this.countHandledByte = countHandledByte;
+			this.handledBytes = countHandledByte;
 		}
 
 		/**
 		 * @return the countHandledPacket
 		 */
-		public AtomicLong getCountHandledPacket()
+		public AtomicLong getHandledPackets()
 		{
-			return countHandledPacket;
+			return handledPackets;
 		}
 
 		/**
 		 * @param countHandledPacket the countHandledPacket to set
 		 */
-		public void setCountHandledPacket(AtomicLong countHandledPacket)
+		public void setHandledPackets(AtomicLong handledPackets)
 		{
-			this.countHandledPacket = countHandledPacket;
+			this.handledPackets = handledPackets;
 		}
 
 		/**
 		 * @return the countReceivedByte
 		 */
-		public AtomicLong getCountReceivedByte()
+		public AtomicLong getReceivedBytes()
 		{
-			return countReceivedByte;
+			return receivedBytes;
 		}
 
 		/**
 		 * @param countReceivedByte the countReceivedByte to set
 		 */
-		public void setCountReceivedByte(AtomicLong countReceivedByte)
+		public void setReceivedBytes(AtomicLong receivedBytes)
 		{
-			this.countReceivedByte = countReceivedByte;
+			this.receivedBytes = receivedBytes;
 		}
 
 		/**
 		 * @return the countReceivedPacket
 		 */
-		public AtomicLong getCountReceivedPacket()
+		public AtomicLong getReceivedPackets()
 		{
-			return countReceivedPacket;
+			return receivedPackets;
 		}
 
 		/**
 		 * @param countReceivedPacket the countReceivedPacket to set
 		 */
-		public void setCountReceivedPacket(AtomicLong countReceivedPacket)
+		public void setReceivedPackets(AtomicLong receivedPackets)
 		{
-			this.countReceivedPacket = countReceivedPacket;
+			this.receivedPackets = receivedPackets;
 		}
 
 		/**
@@ -624,6 +675,46 @@ public abstract class ChannelContext<Ext, P extends Packet, R>
 			this.timeClosed = timeClosed;
 		}
 
+	}
+
+	/**
+	 * @return the isRemoved
+	 */
+	public boolean isRemoved()
+	{
+		return isRemoved;
+	}
+
+	/**
+	 * @param isRemoved the isRemoved to set
+	 */
+	public void setRemoved(boolean isRemoved)
+	{
+		this.isRemoved = isRemoved;
+	}
+
+	/**
+	 * @return the serverNode
+	 */
+	public Node getServerNode()
+	{
+		return serverNode;
+	}
+
+	/**
+	 * @param serverNode the serverNode to set
+	 */
+	public void setServerNode(Node serverNode)
+	{
+		this.serverNode = serverNode;
+	}
+
+	/**
+	 * @return the closeLock
+	 */
+	public ReentrantReadWriteLock getCloseLock()
+	{
+		return closeLock;
 	}
 
 }

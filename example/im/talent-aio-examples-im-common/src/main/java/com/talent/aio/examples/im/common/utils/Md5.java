@@ -1,25 +1,9 @@
 package com.talent.aio.examples.im.common.utils;
 
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
 import org.apache.commons.codec.digest.DigestUtils;
-/**
- * **************************************************************************
- *
- * @说明: 
- * @项目名称: talent-utils
- *
- * @author: tanyaowu 
- * @创建时间: 2013年5月10日 下午3:13:37
- *
- * **************************************************************************
- */
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 

@@ -87,7 +87,7 @@ public class DefaultRejectedExecutionHandler<R extends SynRunnableIntf> implemen
 				{
 					if (log.isInfoEnabled())
 					{
-						log.info("deque in run:{},hashcode:{}", deque.size(), deque.hashCode());
+						log.debug("deque in run:{},hashcode:{}", deque.size(), deque.hashCode());
 					}
 
 					if (deque.size() > 0)
@@ -95,10 +95,10 @@ public class DefaultRejectedExecutionHandler<R extends SynRunnableIntf> implemen
 						int maximumPoolSize = executor.getMaximumPoolSize();
 						int poolSize = executor.getPoolSize();
 						int activeCount = executor.getActiveCount();
-						log.info("poolsize:{}, activeCount:{}, maximumsize:{}", poolSize, activeCount, maximumPoolSize);
+						log.debug("poolsize:{}, activeCount:{}, maximumsize:{}", poolSize, activeCount, maximumPoolSize);
 						if (maximumPoolSize == activeCount)
 						{
-							log.warn("maximumPoolSize({}) == activeCount({})", maximumPoolSize, activeCount);
+							log.debug("maximumPoolSize({}) == activeCount({})", maximumPoolSize, activeCount);
 							try
 							{
 								long sleeptime = 1;
@@ -114,22 +114,8 @@ public class DefaultRejectedExecutionHandler<R extends SynRunnableIntf> implemen
 					Runnable r = deque.poll(6, TimeUnit.SECONDS);
 					if (r != null)
 					{
-						//						if (r instanceof SynRunnableIntf)
-						//						{
-						//							synchronized (r)
-						//							{
-						//								SynRunnableIntf synRunnableIntf = ((SynRunnableIntf) r);
-						//								synRunnableIntf.setInSchedule(false);
-						//								synRunnableIntf.setRunning(false);
-						//								executor.execute(r);
-						//							}
-						//						} else
-						//						{
-						//							executor.execute(r);
-						//						}
-
 						executor.execute(r);
-						log.warn("submit a runnable, {} runnables waiting for submit", deque.size());
+						log.debug("submit a runnable, {} runnables waiting for submit", deque.size());
 					}
 				} catch (java.lang.Throwable e)
 				{
@@ -227,24 +213,24 @@ public class DefaultRejectedExecutionHandler<R extends SynRunnableIntf> implemen
 		//		synchronized (deque)
 		//		{
 		LinkedBlockingDeque<SynRunnableIntf> deque = submitTaskRunnable.deque;
-		//		log.info("deque in rejectedExecution, size:{}, deque:{}", deque.size(), deque.hashCode());
+		//		log.debug("deque in rejectedExecution, size:{}, deque:{}", deque.size(), deque.hashCode());
 		if (deque.contains(r))
 		{
-			log.warn("{} has contained in deque, deque size is {}", r, deque.size());
+			log.debug("{} has contained in deque, deque size is {}", r, deque.size());
 		} else
 		{
 			if (submitTaskThread == Thread.currentThread())
 			{
-				log.info("thread is same--submitTaskThread:{}, currentThread:{}", submitTaskThread, Thread.currentThread());
+				log.debug("thread is same--submitTaskThread:{}, currentThread:{}", submitTaskThread, Thread.currentThread());
 				deque.addFirst(rr);
 			} else
 			{
-				log.info("thread is diff--submitTaskThread:{}, currentThread:{}", submitTaskThread, Thread.currentThread());
+				log.debug("thread is diff--submitTaskThread:{}, currentThread:{}", submitTaskThread, Thread.currentThread());
 				deque.addLast(rr);
 			}
 		}
 		//		}
-		log.warn("{} is rejected, {} tasks is waiting!", r, deque.size());
+		log.debug("{} is rejected, {} tasks is waiting!", r, deque.size());
 	}
 
 	/**

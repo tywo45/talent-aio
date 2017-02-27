@@ -4,7 +4,6 @@
 package com.talent.aio.common.task;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
@@ -20,6 +19,7 @@ import com.talent.aio.common.threadpool.SynThreadPoolExecutor;
 import com.talent.aio.common.threadpool.intf.SynRunnableIntf;
 import com.talent.aio.common.utils.AioUtils;
 import com.talent.aio.common.utils.ByteBufferUtils;
+import com.talent.aio.common.utils.SystemTimer;
 
 /**
  * 解码
@@ -28,11 +28,11 @@ import com.talent.aio.common.utils.ByteBufferUtils;
  * @date 2012-08-09
  * 
  */
-public class DecodeRunnable<Ext, P extends Packet, R> extends AbstractQueueRunnable<ByteBuffer>
+public class DecodeRunnable<SessionContext, P extends Packet, R> extends AbstractQueueRunnable<ByteBuffer>
 {
 	private static final Logger log = LoggerFactory.getLogger(DecodeRunnable.class);
 
-	private ChannelContext<Ext, P, R> channelContext = null;
+	private ChannelContext<SessionContext, P, R> channelContext = null;
 
 	/**
 	 * 上一次解码，剩下的数据
@@ -42,20 +42,10 @@ public class DecodeRunnable<Ext, P extends Packet, R> extends AbstractQueueRunna
 	/**
 	 * 
 	 */
-	public DecodeRunnable(ChannelContext<Ext, P, R> channelContext, Executor executor)
+	public DecodeRunnable(ChannelContext<SessionContext, P, R> channelContext, Executor executor)
 	{
 		super(executor);
 		this.channelContext = channelContext;
-	}
-
-	/**
-	 * 添加要解码的消息
-	 * 
-	 * @param datas
-	 */
-	public void addMsg(ByteBuffer datas)
-	{
-		getMsgQueue().add(datas);
 	}
 
 	/**
@@ -63,20 +53,20 @@ public class DecodeRunnable<Ext, P extends Packet, R> extends AbstractQueueRunna
 	 */
 	public void clearMsgQueue()
 	{
-		getMsgQueue().clear();
+		msgQueue.clear();
 		lastByteBuffer = null;
 	}
 
 	@Override
 	public void runTask()
 	{
-		ConcurrentLinkedQueue<ByteBuffer> queue = getMsgQueue();
 		@SuppressWarnings("unused")
 		int size = 0;
 		ByteBuffer byteBuffer = null;
-		label_1: while ((size = queue.size()) > 0)
+		label_1: while ((size = msgQueue.size()) > 0)
 		{
-			byteBuffer = queue.poll();
+			byteBuffer = msgQueue.poll();
+			//log.error(byteBuffer.toString());
 			if (byteBuffer != null)
 			{
 				if (lastByteBuffer != null)
@@ -110,16 +100,26 @@ public class DecodeRunnable<Ext, P extends Packet, R> extends AbstractQueueRunna
 						continue label_1;
 					} else //组包成功
 					{
+						channelContext.getStat().setLatestTimeOfReceivedPacket(SystemTimer.currentTimeMillis());
+						
 						int afterDecodePosition = byteBuffer.position();
 						int len = afterDecodePosition - initPosition;
-						AioListener<Ext, P, R> aioListener = channelContext.getGroupContext().getAioListener();
-						if (aioListener != null)
-						{
-							aioListener.onAfterDecoded(channelContext, packet, len);
-						}
-						submit(packet, len);
+						
 						channelContext.getGroupContext().getGroupStat().getReceivedPacket().incrementAndGet();
 						channelContext.getGroupContext().getGroupStat().getReceivedBytes().addAndGet(len);
+						
+						submit(packet, len);
+						
+						AioListener<SessionContext, P, R> aioListener = channelContext.getGroupContext().getAioListener();
+						try
+						{
+							log.info("{} 收到:{}", channelContext, packet.logstr());
+							aioListener.onAfterReceived(channelContext, packet, len);
+						} catch (Exception e)
+						{
+							log.error(e.toString(), e);
+						}
+						
 
 						if (byteBuffer.hasRemaining())//组包后，还剩有数据
 						{
@@ -167,9 +167,14 @@ public class DecodeRunnable<Ext, P extends Packet, R> extends AbstractQueueRunna
 	 * @param channelContext the channel context
 	 * @param packet the packet
 	 */
-	public static <Ext, P extends Packet, R> void handler(ChannelContext<Ext, P, R> channelContext, P packet)
+	public static <SessionContext, P extends Packet, R> void handler(ChannelContext<SessionContext, P, R> channelContext, P packet)
 	{
-		HandlerRunnable<Ext, P, R> handlerRunnable = AioUtils.selectHandlerRunnable(channelContext, packet);
+		if (channelContext.isClosed() || channelContext.isRemoved())
+		{
+			log.error("{} 已经关闭", channelContext);
+			return;
+		}
+		HandlerRunnable<SessionContext, P, R> handlerRunnable = AioUtils.selectHandlerRunnable(channelContext, packet);
 		handlerRunnable.addMsg(packet);
 		SynThreadPoolExecutor<SynRunnableIntf> synThreadPoolExecutor = AioUtils.selectHandlerExecutor(channelContext, packet);
 		synThreadPoolExecutor.execute(handlerRunnable);
@@ -183,12 +188,12 @@ public class DecodeRunnable<Ext, P extends Packet, R> extends AbstractQueueRunna
 
 	}
 
-	public ChannelContext<Ext, P, R> getChannelContext()
+	public ChannelContext<SessionContext, P, R> getChannelContext()
 	{
 		return channelContext;
 	}
 
-	public void setChannelContext(ChannelContext<Ext, P, R> channelContext)
+	public void setChannelContext(ChannelContext<SessionContext, P, R> channelContext)
 	{
 		this.channelContext = channelContext;
 	}

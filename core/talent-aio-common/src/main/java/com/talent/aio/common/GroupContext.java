@@ -13,6 +13,9 @@ package com.talent.aio.common;
 
 import java.nio.ByteOrder;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +24,8 @@ import com.talent.aio.common.intf.AioHandler;
 import com.talent.aio.common.intf.AioListener;
 import com.talent.aio.common.intf.Packet;
 import com.talent.aio.common.maintain.ClientNodes;
+import com.talent.aio.common.maintain.Closeds;
+import com.talent.aio.common.maintain.Connecteds;
 import com.talent.aio.common.maintain.Connections;
 import com.talent.aio.common.maintain.Groups;
 import com.talent.aio.common.maintain.Syns;
@@ -40,7 +45,7 @@ import com.talent.aio.common.threadpool.intf.SynRunnableIntf;
  *  (1) | 2016年11月16日 | tanyaowu | 新建类
  *
  */
-public abstract class GroupContext<Ext, P extends Packet, R>
+public abstract class GroupContext<SessionContext, P extends Packet, R>
 {
 	static Logger log = LoggerFactory.getLogger(GroupContext.class);
 
@@ -56,9 +61,10 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	 */
 	public static final int READ_BUFFER_SIZE = 2048;
 
-	public static final int MAXIMUM_POOL_SIZE = CORE_POOL_SIZE * 4;
+//	public static final int MAXIMUM_POOL_SIZE = CORE_POOL_SIZE * 4;
 
-	public static final long KEEP_ALIVE_TIME = 90L;
+	public static final long KEEP_ALIVE_TIME = 9000000L;
+	
 
 	private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
 
@@ -72,20 +78,20 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	 */
 	protected int readBufferSize = READ_BUFFER_SIZE;
 	
-	protected ReconnConf<Ext, P, R> reconnConf;//重连配置
+	protected ReconnConf<SessionContext, P, R> reconnConf;//重连配置
 
-	//	private AioHandler<Ext, P, R> aioHandler;
+	//	private AioHandler<SessionContext, P, R> aioHandler;
 	//
-	//	private AioListener<Ext, P, R> aioListener;
+	//	private AioListener<SessionContext, P, R> aioListener;
 	/**
 	 * 解码线程池
 	 */
 	private SynThreadPoolExecutor<SynRunnableIntf> decodeExecutor = null;
 
-	/**
-	 * 关闭连接的线程池
-	 */
-	private SynThreadPoolExecutor<SynRunnableIntf> closeExecutor = null;
+//	/**
+//	 * 关闭连接的线程池
+//	 */
+//	private SynThreadPoolExecutor<SynRunnableIntf> closeExecutor = null;
 
 //	/**
 //	 * 高优先级的业务处理线程池
@@ -104,32 +110,49 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	 * 低优先级的消息发送线程池
 	 */
 	private SynThreadPoolExecutor<SynRunnableIntf> sendExecutorNormPrior = null;
+	
+	
 
-	protected ClientNodes<Ext, P, R> clientNodes = new ClientNodes<>();
-	protected Connections<Ext, P, R> connections = new Connections<>();
-	protected Groups<Ext, P, R> groups = new Groups<>();
-	protected Users<Ext, P, R> users = new Users<>();
-	protected Syns<Ext, P, R> syns = new Syns<>();
+	private ThreadPoolExecutor closePoolExecutor = null;
+	
+	
+
+	protected ClientNodes<SessionContext, P, R> clientNodes = new ClientNodes<>();
+	protected Connections<SessionContext, P, R> connections = new Connections<>();
+	protected Connecteds<SessionContext, P, R> connecteds = new Connecteds<>();
+	protected Closeds<SessionContext, P, R> closeds = new Closeds<>();
+	
+	protected Groups<SessionContext, P, R> groups = new Groups<>();
+	protected Users<SessionContext, P, R> users = new Users<>();
+	protected Syns<SessionContext, P, R> syns = new Syns<>();
+	
+	/**
+	 * packet编码成bytebuffer时，是否与ChannelContext相关，false: packet编码与ChannelContext无关
+	 */
+	private boolean isEncodeCareWithChannelContext  = true;
 
 	protected String id;
+	
+	private boolean isStopped = false;
 
-	protected GroupContext()
-	{
-	}
+	
+	
+	private final static AtomicInteger ID_ATOMIC = new AtomicInteger();
+
 
 	/**
-	 * @param ip
-	 * @param port
+	 * @param serverIp
+	 * @param serverPort
 	 * @param aioHandler
 	 *
 	 * @author: tanyaowu
 	 * @创建时间:　2016年11月16日 上午10:21:58
 	 * 
 	 */
-	public GroupContext(String id)
+	public GroupContext()
 	{
 		super();
-		this.id = id;
+		this.id = ID_ATOMIC.incrementAndGet() + "";
 		
 //		LinkedBlockingQueue<Runnable> poolQueueHighPrior = new LinkedBlockingQueue<Runnable>();
 //		SynThreadPoolExecutor<SynRunnableIntf> executorHighPrior = new SynThreadPoolExecutor<SynRunnableIntf>(CORE_POOL_SIZE, CORE_POOL_SIZE, KEEP_ALIVE_TIME, poolQueueHighPrior,
@@ -142,11 +165,15 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 		executorNormPrior.prestartAllCoreThreads();
 
 		decodeExecutor = executorNormPrior;
-		closeExecutor = executorNormPrior;//executorHighPrior;
+//		closeExecutor = executorNormPrior;//executorHighPrior;
 //		handlerExecutorHighPrior = executorNormPrior;//executorHighPrior;
 		handlerExecutorNormPrior = executorNormPrior;
 //		sendExecutorHighPrior = executorNormPrior;//executorHighPrior;
 		sendExecutorNormPrior = executorNormPrior;
+		
+		LinkedBlockingQueue<Runnable> closeQueue = new LinkedBlockingQueue<Runnable>();
+		closePoolExecutor = new ThreadPoolExecutor(0, CORE_POOL_SIZE, 9, TimeUnit.SECONDS, closeQueue,
+				DefaultThreadFactory.getInstance("t-aio-close", Thread.NORM_PRIORITY));
 
 	}
 
@@ -165,7 +192,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	//	/**
 	//	 * @return the aioHandler
 	//	 */
-	//	public AioHandler<Ext, P, R> getAioHandler()
+	//	public AioHandler<SessionContext, P, R> getAioHandler()
 	//	{
 	//		return aioHandler;
 	//	}
@@ -173,7 +200,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	//	/**
 	//	 * @param aioHandler the aioHandler to set
 	//	 */
-	//	public void setAioHandler(AioHandler<Ext, P, R> aioHandler)
+	//	public void setAioHandler(AioHandler<SessionContext, P, R> aioHandler)
 	//	{
 	//		this.aioHandler = aioHandler;
 	//	}
@@ -277,7 +304,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	/**
 	 * @return the ipPortMaps
 	 */
-	public ClientNodes<Ext, P, R> getClientNodes()
+	public ClientNodes<SessionContext, P, R> getClientNodes()
 	{
 		return clientNodes;
 	}
@@ -285,7 +312,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	/**
 	 * @param remotes the ipPortMaps to set
 	 */
-	public void setClientNodes(ClientNodes<Ext, P, R> clientNodes)
+	public void setClientNodes(ClientNodes<SessionContext, P, R> clientNodes)
 	{
 		this.clientNodes = clientNodes;
 	}
@@ -293,7 +320,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	/**
 	 * @return the groups
 	 */
-	public Groups<Ext, P, R> getGroups()
+	public Groups<SessionContext, P, R> getGroups()
 	{
 		return groups;
 	}
@@ -301,7 +328,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	/**
 	 * @param groups the groups to set
 	 */
-	public void setGroups(Groups<Ext, P, R> groups)
+	public void setGroups(Groups<SessionContext, P, R> groups)
 	{
 		this.groups = groups;
 	}
@@ -309,7 +336,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	/**
 	 * @return the users
 	 */
-	public Users<Ext, P, R> getUsers()
+	public Users<SessionContext, P, R> getUsers()
 	{
 		return users;
 	}
@@ -317,7 +344,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	/**
 	 * @param users the users to set
 	 */
-	public void setUsers(Users<Ext, P, R> users)
+	public void setUsers(Users<SessionContext, P, R> users)
 	{
 		this.users = users;
 	}
@@ -354,26 +381,26 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 		this.heartbeatTimeout = heartbeatTimeout;
 	}
 
-	/**
-	 * @return the closeExecutor
-	 */
-	public SynThreadPoolExecutor<SynRunnableIntf> getCloseExecutor()
-	{
-		return closeExecutor;
-	}
-
-	/**
-	 * @param closeExecutor the closeExecutor to set
-	 */
-	public void setCloseExecutor(SynThreadPoolExecutor<SynRunnableIntf> closeExecutor)
-	{
-		this.closeExecutor = closeExecutor;
-	}
+//	/**
+//	 * @return the closeExecutor
+//	 */
+//	public SynThreadPoolExecutor<SynRunnableIntf> getCloseExecutor()
+//	{
+//		return closeExecutor;
+//	}
+//
+//	/**
+//	 * @param closeExecutor the closeExecutor to set
+//	 */
+//	public void setCloseExecutor(SynThreadPoolExecutor<SynRunnableIntf> closeExecutor)
+//	{
+//		this.closeExecutor = closeExecutor;
+//	}
 
 	/**
 	 * @return the connections
 	 */
-	public Connections<Ext, P, R> getConnections()
+	public Connections<SessionContext, P, R> getConnections()
 	{
 		return connections;
 	}
@@ -381,7 +408,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	/**
 	 * @param connections the connections to set
 	 */
-	public void setConnections(Connections<Ext, P, R> connections)
+	public void setConnections(Connections<SessionContext, P, R> connections)
 	{
 		this.connections = connections;
 	}
@@ -389,7 +416,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	//	/**
 	//	 * @return the aioListener
 	//	 */
-	//	public AioListener<Ext, P, R> getAioListener()
+	//	public AioListener<SessionContext, P, R> getAioListener()
 	//	{
 	//		return aioListener;
 	//	}
@@ -397,7 +424,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	//	/**
 	//	 * @param aioListener the aioListener to set
 	//	 */
-	//	public void setSendListener(AioListener<Ext, P, R> aioListener)
+	//	public void setSendListener(AioListener<SessionContext, P, R> aioListener)
 	//	{
 	//		this.aioListener = aioListener;
 	//	}
@@ -425,7 +452,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	 * @创建时间:　2016年12月20日 上午11:32:02
 	 * 
 	 */
-	public abstract AioHandler<Ext, P, R> getAioHandler();
+	public abstract AioHandler<SessionContext, P, R> getAioHandler();
 
 	/**
 	 * @return
@@ -443,12 +470,12 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	 * @创建时间:　2016年12月20日 上午11:33:28
 	 * 
 	 */
-	public abstract AioListener<Ext, P, R> getAioListener();
+	public abstract AioListener<SessionContext, P, R> getAioListener();
 
 	/**
 	 * @return the reconnConf
 	 */
-	public ReconnConf<Ext, P, R> getReconnConf()
+	public ReconnConf<SessionContext, P, R> getReconnConf()
 	{
 		return reconnConf;
 	}
@@ -456,7 +483,7 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	/**
 	 * @return the syns
 	 */
-	public Syns<Ext, P, R> getSyns()
+	public Syns<SessionContext, P, R> getSyns()
 	{
 		return syns;
 	}
@@ -464,9 +491,90 @@ public abstract class GroupContext<Ext, P extends Packet, R>
 	/**
 	 * @param syns the syns to set
 	 */
-	public void setSyns(Syns<Ext, P, R> syns)
+	public void setSyns(Syns<SessionContext, P, R> syns)
 	{
 		this.syns = syns;
 	}
 
+	
+
+	/**
+	 * @return the connecteds
+	 */
+	public Connecteds<SessionContext, P, R> getConnecteds()
+	{
+		return connecteds;
+	}
+
+	/**
+	 * @param connecteds the connecteds to set
+	 */
+	public void setConnecteds(Connecteds<SessionContext, P, R> connecteds)
+	{
+		this.connecteds = connecteds;
+	}
+
+	/**
+	 * @return the closeds
+	 */
+	public Closeds<SessionContext, P, R> getCloseds()
+	{
+		return closeds;
+	}
+
+	/**
+	 * @param closeds the closeds to set
+	 */
+	public void setCloseds(Closeds<SessionContext, P, R> closeds)
+	{
+		this.closeds = closeds;
+	}
+
+	/**
+	 * @return the isEncodeCareWithChannelContext
+	 */
+	public boolean isEncodeCareWithChannelContext()
+	{
+		return isEncodeCareWithChannelContext;
+	}
+
+	/**
+	 * @param isEncodeCareWithChannelContext the isEncodeCareWithChannelContext to set
+	 */
+	public void setEncodeCareWithChannelContext(boolean isEncodeCareWithChannelContext)
+	{
+		this.isEncodeCareWithChannelContext = isEncodeCareWithChannelContext;
+	}
+
+	/**
+	 * @return the isStop
+	 */
+	public boolean isStopped()
+	{
+		return isStopped;
+	}
+
+	/**
+	 * @param isStop the isStop to set
+	 */
+	public void setStopped(boolean isStopped)
+	{
+		this.isStopped = isStopped;
+	}
+
+	/**
+	 * @return the closePoolExecutor
+	 */
+	public ThreadPoolExecutor getClosePoolExecutor()
+	{
+		return closePoolExecutor;
+	}
+
+	/**
+	 * @param closePoolExecutor the closePoolExecutor to set
+	 */
+	public void setClosePoolExecutor(ThreadPoolExecutor closePoolExecutor)
+	{
+		this.closePoolExecutor = closePoolExecutor;
+	}
 }

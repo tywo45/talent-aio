@@ -6,6 +6,10 @@ package com.talent.aio.common.threadpool;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talent.aio.common.task.HandlerRunnable;
 import com.talent.aio.common.threadpool.intf.QueueRunnableIntf;
 
 /**
@@ -17,7 +21,8 @@ import com.talent.aio.common.threadpool.intf.QueueRunnableIntf;
  */
 public abstract class AbstractQueueRunnable<T> extends AbstractSynRunnable implements QueueRunnableIntf<T>
 {
-
+	private static final Logger log = LoggerFactory.getLogger(HandlerRunnable.class);
+	
 	/**
 	 * Instantiates a new abstract queue runnable.
 	 */
@@ -28,7 +33,7 @@ public abstract class AbstractQueueRunnable<T> extends AbstractSynRunnable imple
 
 	public boolean isNeededExecute()
 	{
-		return this.getMsgQueue().size() > 0;
+		return msgQueue.size() > 0;
 	}
 
 	/** The msg queue. */
@@ -42,6 +47,22 @@ public abstract class AbstractQueueRunnable<T> extends AbstractSynRunnable imple
 	public static void main(String[] args)
 	{
 
+	}
+	
+	/**
+	 * 添加要处理的消息
+	 * 
+	 * @param packet
+	 */
+	public void addMsg(T t)
+	{
+		if (this.isCanceled())
+		{
+			log.error("任务已经取消");
+			return;
+		}
+		
+		getMsgQueue().add(t);
 	}
 
 	/** 

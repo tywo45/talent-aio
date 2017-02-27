@@ -1,5 +1,7 @@
 package com.talent.aio.common.intf;
 
+import java.nio.ByteBuffer;
+
 /**
  * 
  * @author tanyaowu 
@@ -12,41 +14,46 @@ package com.talent.aio.common.intf;
  */
 public class Packet
 {
-//	/**
-//	 * 低优先级
-//	 */
-//	public static final byte PRIORITY_LOW = 1;
-//
-//	/**
-//	 * 高优先级
-//	 */
-//	public static final byte PRIORITY_HIGH = 2;
+	//	/**
+	//	 * 低优先级
+	//	 */
+	//	public static final byte PRIORITY_LOW = 1;
+	//
+	//	/**
+	//	 * 高优先级
+	//	 */
+	//	public static final byte PRIORITY_HIGH = 2;
 
-//	/**
-//	 * 消息处理的发送的优先级
-//	 */
-//	private byte priority = 1;
+	//	/**
+	//	 * 消息处理的发送的优先级
+	//	 */
+	//	private byte priority = 1;
 
 	/**
 	 * 同步发送时，需要的同步序列号
 	 */
-	private Integer synSeq = null;
-//
-//	/**
-//	 * @return the priority
-//	 */
-//	public byte getPriority()
-//	{
-//		return priority;
-//	}
-//
-//	/**
-//	 * @param priority the priority to set
-//	 */
-//	public void setPriority(byte priority)
-//	{
-//		this.priority = priority;
-//	}
+	private Integer synSeq = 0;
+
+	/**
+	 * 预编码过的bytebuffer，如果此值不为null，框架则会忽略原来的encode()过程
+	 */
+	private ByteBuffer preEncodedByteBuffer = null;
+	//
+	//	/**
+	//	 * @return the priority
+	//	 */
+	//	public byte getPriority()
+	//	{
+	//		return priority;
+	//	}
+	//
+	//	/**
+	//	 * @param priority the priority to set
+	//	 */
+	//	public void setPriority(byte priority)
+	//	{
+	//		this.priority = priority;
+	//	}
 
 	/**
 	 * @return the synSeq
@@ -62,6 +69,27 @@ public class Packet
 	public void setSynSeq(Integer synSeq)
 	{
 		this.synSeq = synSeq;
+	}
+
+	/**
+	 * @return the preEncodedByteBuffer
+	 */
+	public ByteBuffer getPreEncodedByteBuffer()
+	{
+		return preEncodedByteBuffer;
+	}
+
+	/**
+	 * @param preEncodedByteBuffer the preEncodedByteBuffer to set
+	 */
+	public void setPreEncodedByteBuffer(ByteBuffer preEncodedByteBuffer)
+	{
+		this.preEncodedByteBuffer = preEncodedByteBuffer;
+	}
+
+	public String logstr()
+	{
+		return null;
 	}
 
 }

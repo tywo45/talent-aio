@@ -12,8 +12,11 @@
 package com.talent.aio.common;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import com.talent.aio.common.intf.Packet;
+import com.talent.aio.common.threadpool.DefaultThreadFactory;
 
 /**
  * 目前只支持
@@ -25,20 +28,23 @@ import com.talent.aio.common.intf.Packet;
  *  (1) | 2017年1月11日 | tanyaowu | 新建类
  *
  */
-public class ReconnConf<Ext, P extends Packet, R>
+public class ReconnConf<SessionContext, P extends Packet, R>
 {
 
 	/**
 	 * 重连的间隔时间，单位毫秒
 	 */
 	private long interval = 5000;
-	
+
 	/**
 	 * 连续重连次数，当连续重连这么多次都失败时，不再重连。0和负数则一直重连
 	 */
 	private int retryCount = 0;
 
-	LinkedBlockingQueue<ChannelContext<Ext, P, R>> queue = new LinkedBlockingQueue<ChannelContext<Ext, P, R>>();
+	LinkedBlockingQueue<ChannelContext<SessionContext, P, R>> queue = new LinkedBlockingQueue<ChannelContext<SessionContext, P, R>>();
+
+	//用来重连的线程池
+	private ThreadPoolExecutor threadPoolExecutor = null;
 
 	/**
 	 * 
@@ -49,6 +55,19 @@ public class ReconnConf<Ext, P extends Packet, R>
 	 */
 	public ReconnConf()
 	{
+		if (threadPoolExecutor == null)
+		{
+			synchronized (ReconnConf.class)
+			{
+				if (threadPoolExecutor == null)
+				{
+					threadPoolExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(), 60L, TimeUnit.SECONDS,
+							new LinkedBlockingQueue<Runnable>(), DefaultThreadFactory.getInstance("t-aio-client-reconn"));
+				}
+			}
+
+		}
+
 	}
 
 	/**
@@ -74,7 +93,7 @@ public class ReconnConf<Ext, P extends Packet, R>
 	 */
 	public ReconnConf(long interval, int retryCount)
 	{
-		super();
+		this();
 		this.interval = interval;
 		this.retryCount = retryCount;
 	}
@@ -109,7 +128,7 @@ public class ReconnConf<Ext, P extends Packet, R>
 	/**
 	 * @return the queue
 	 */
-	public LinkedBlockingQueue<ChannelContext<Ext, P, R>> getQueue()
+	public LinkedBlockingQueue<ChannelContext<SessionContext, P, R>> getQueue()
 	{
 		return queue;
 	}
@@ -129,5 +148,21 @@ public class ReconnConf<Ext, P extends Packet, R>
 	{
 		this.retryCount = retryCount;
 	}
+
+	/**
+	 * @return the threadPoolExecutor
+	 */
+	public ThreadPoolExecutor getThreadPoolExecutor()
+	{
+		return threadPoolExecutor;
+	}
+
+//	/**
+//	 * @param threadPoolExecutor the threadPoolExecutor to set
+//	 */
+//	public void setThreadPoolExecutor(ThreadPoolExecutor threadPoolExecutor)
+//	{
+//		this.threadPoolExecutor = threadPoolExecutor;
+//	}
 
 }
