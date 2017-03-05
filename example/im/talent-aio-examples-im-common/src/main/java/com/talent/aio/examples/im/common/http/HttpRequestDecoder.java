@@ -19,8 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.talent.aio.common.exception.AioDecodeException;
 import com.talent.aio.examples.im.common.http.HttpRequestPacket.RequestLine;
-import com.talent.aio.examples.im.common.utils.BASE64Util;
-import com.talent.aio.examples.im.common.utils.SHA1Util;
 
 /**
  * 

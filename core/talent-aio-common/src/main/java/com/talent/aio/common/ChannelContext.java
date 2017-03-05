@@ -3,6 +3,7 @@ package com.talent.aio.common;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -56,6 +57,8 @@ public abstract class ChannelContext<SessionContext, P extends Packet, R>
 	//	private WriteCompletionHandler<SessionContext, P, R> writeCompletionHandler = new WriteCompletionHandler<>();
 
 	private String userid;
+	
+	private boolean isWaitingClose = false;
 
 	private boolean isClosed = true;
 	
@@ -79,7 +82,7 @@ public abstract class ChannelContext<SessionContext, P extends Packet, R>
 
 	private SessionContext sessionContext;
 
-	private long id = ID_SEQ.incrementAndGet();
+	private Long id = ID_SEQ.incrementAndGet();
 
 	private Node clientNode;
 	
@@ -500,6 +503,11 @@ public abstract class ChannelContext<SessionContext, P extends Packet, R>
 		 * 连接关闭的时间
 		 */
 		private long timeClosed = SystemTimer.currentTimeMillis();
+		
+		/**
+		 * 进入重连队列时间
+		 */
+		private long timeInReconnQueue = SystemTimer.currentTimeMillis();
 
 		/**
 		 * 本连接已发送的字节数
@@ -675,6 +683,22 @@ public abstract class ChannelContext<SessionContext, P extends Packet, R>
 			this.timeClosed = timeClosed;
 		}
 
+		/**
+		 * @return the timeInReconnQueue
+		 */
+		public long getTimeInReconnQueue()
+		{
+			return timeInReconnQueue;
+		}
+
+		/**
+		 * @param timeInReconnQueue the timeInReconnQueue to set
+		 */
+		public void setTimeInReconnQueue(long timeInReconnQueue)
+		{
+			this.timeInReconnQueue = timeInReconnQueue;
+		}
+
 	}
 
 	/**
@@ -715,6 +739,72 @@ public abstract class ChannelContext<SessionContext, P extends Packet, R>
 	public ReentrantReadWriteLock getCloseLock()
 	{
 		return closeLock;
+	}
+
+	/**
+	 * @return the isWaitingClose
+	 */
+	public boolean isWaitingClose()
+	{
+		return isWaitingClose;
+	}
+
+	/**
+	 * @param isWaitingClose the isWaitingClose to set
+	 */
+	public void setWaitingClose(boolean isWaitingClose)
+	{
+		this.isWaitingClose = isWaitingClose;
+	}
+
+	/** 
+	 * @see java.lang.Object#hashCode()
+	 * 
+	 * @return
+	 * @重写人: tanyaowu
+	 * @重写时间: 2017年3月5日 下午5:27:49
+	 * 
+	 */
+	@Override
+	public int hashCode()
+	{
+		return this.id.hashCode();
+	}
+
+	/** 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 * 
+	 * @param obj
+	 * @return
+	 * @重写人: tanyaowu
+	 * @重写时间: 2017年3月5日 下午5:27:49
+	 * 
+	 */
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+		{
+			return true;
+		}
+		if (obj == null)
+		{
+			return false;
+		}
+		if (getClass() != obj.getClass())
+		{
+			return false;
+		}
+		@SuppressWarnings("unchecked")
+		ChannelContext<SessionContext, P, R> other = (ChannelContext<SessionContext, P, R>) obj;
+		if (Objects.equals(other.id, this.id))
+		{
+			return true;
+		} else
+		{
+			return false;
+		}
+
 	}
 
 }

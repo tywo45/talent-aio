@@ -41,10 +41,46 @@ public class AioUtils
 
 	public static <SessionContext, P extends Packet, R> boolean checkBeforeIO(ChannelContext<SessionContext, P, R> channelContext)
 	{
-		AsynchronousSocketChannel asynchronousSocketChannel = channelContext.getAsynchronousSocketChannel();
-		if (!asynchronousSocketChannel.isOpen())
+		if (channelContext == null)
 		{
-			log.warn("asynchronousSocketChannel is not open, {}", channelContext.toString());
+			log.error("channelContext = null, {}", ThreadUtils.stackTrace());
+			return false;
+		}
+
+		boolean isClosed = channelContext.isClosed();
+		boolean isRemoved = channelContext.isRemoved();
+
+		AsynchronousSocketChannel asynchronousSocketChannel = channelContext.getAsynchronousSocketChannel();
+		Boolean isopen = null;
+		if (asynchronousSocketChannel != null)
+		{
+			isopen = asynchronousSocketChannel.isOpen();
+
+			if (isClosed || isRemoved)
+			{
+				if (isopen)
+				{
+					try
+					{
+						Aio.close(channelContext, "asynchronousSocketChannel is open, but channelContext isClosed: " + isClosed + ", isRemoved: " + isRemoved);
+					} catch (Exception e)
+					{
+						log.error(e.toString(), e);
+					}
+				}
+				log.error("{}, isopen:{}, isClosed:{}, isRemoved:{}, {} ", channelContext, isopen, channelContext.isClosed(), channelContext.isRemoved(), ThreadUtils.stackTrace());
+				return false;
+			}
+		} else
+		{
+			log.error("{}, asynchronousSocketChannel is null, isClosed:{}, isRemoved:{}, {} ", channelContext, channelContext.isClosed(), channelContext.isRemoved(),
+					ThreadUtils.stackTrace());
+			return false;
+		}
+
+		if (!isopen)
+		{
+			log.error("{}, isopen:{}, isClosed:{}, isRemoved:{}, {} ", channelContext, isopen, channelContext.isClosed(), channelContext.isRemoved(), ThreadUtils.stackTrace());
 			Aio.close(channelContext, "asynchronousSocketChannel is not open");
 			return false;
 		}

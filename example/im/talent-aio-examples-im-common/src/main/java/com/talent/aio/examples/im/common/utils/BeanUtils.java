@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.protobuf.ExtensionRegistry;
 import com.googlecode.protobuf.format.JsonFormat;
-import com.googlecode.protobuf.format.JsonFormat.ParseException;
 import com.talent.aio.examples.im.common.json.Json;
 import com.talent.aio.examples.im.common.packets.AuthReqBody;
 

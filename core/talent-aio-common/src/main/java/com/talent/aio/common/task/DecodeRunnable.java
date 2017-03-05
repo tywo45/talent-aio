@@ -20,6 +20,7 @@ import com.talent.aio.common.threadpool.intf.SynRunnableIntf;
 import com.talent.aio.common.utils.AioUtils;
 import com.talent.aio.common.utils.ByteBufferUtils;
 import com.talent.aio.common.utils.SystemTimer;
+import com.talent.aio.common.utils.ThreadUtils;
 
 /**
  * 解码
@@ -105,6 +106,13 @@ public class DecodeRunnable<SessionContext, P extends Packet, R> extends Abstrac
 						int afterDecodePosition = byteBuffer.position();
 						int len = afterDecodePosition - initPosition;
 						
+						if (len == 0)
+						{
+							String logstr = channelContext + "解码成功, " + packet.logstr() + "," + byteBuffer + " 但是却只消耗了0字节, 这有可能会导致死循环. " + ThreadUtils.stackTrace();
+							log.error(logstr);
+							System.out.println(logstr);
+						}
+						
 						channelContext.getGroupContext().getGroupStat().getReceivedPacket().incrementAndGet();
 						channelContext.getGroupContext().getGroupStat().getReceivedBytes().addAndGet(len);
 						
@@ -121,11 +129,12 @@ public class DecodeRunnable<SessionContext, P extends Packet, R> extends Abstrac
 						}
 						
 
-						if (byteBuffer.hasRemaining())//组包后，还剩有数据
+						int remainingLength = byteBuffer.limit() - byteBuffer.position();
+						if (remainingLength > 0)//组包后，还剩有数据
 						{
 							if (log.isDebugEnabled())
 							{
-								log.debug("{},组包后，还剩有数据:{}", channelContext, byteBuffer.limit() - byteBuffer.position());
+								log.debug("{},组包后，还剩有数据:{}", channelContext, remainingLength);
 							}
 							continue label_2;
 						} else//组包后，数据刚好用完
@@ -138,7 +147,7 @@ public class DecodeRunnable<SessionContext, P extends Packet, R> extends Abstrac
 				}
 			} catch (AioDecodeException e)
 			{
-				log.error(channelContext.toString(), e);
+				log.error(channelContext.toString() + "解码异常", e);
 				Aio.close(channelContext, e, "解码异常:" + e.getMessage());
 				break label_1;
 			} finally
@@ -171,7 +180,7 @@ public class DecodeRunnable<SessionContext, P extends Packet, R> extends Abstrac
 	{
 		if (channelContext.isClosed() || channelContext.isRemoved())
 		{
-			log.error("{} 已经关闭", channelContext);
+			log.error("{}, closed:{}, removed:{}, packet:{}, stack:{}", channelContext, channelContext.isClosed(), channelContext.isRemoved(), packet.logstr(), ThreadUtils.stackTrace());
 			return;
 		}
 		HandlerRunnable<SessionContext, P, R> handlerRunnable = AioUtils.selectHandlerRunnable(channelContext, packet);

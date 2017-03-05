@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>   
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+                       
+<script src="../../lib/protobuf/long.js"></script> 
+<script src="../../lib/protobuf/bytebuffer.js"></script>
+<script src="../../lib/protobuf/protobuf.js"></script>
+
+<script src="../../lib/vue/vue.js"></script>
+
+<link rel="stylesheet" href="../../lib/iview/styles/iview.css">
+<script src="../../lib/iview/iview.min.js"></script>
+
+<script src="../../lib/talent/talent.js"></script>
+
+
+</head>
+<body>
+	<h3>先把talent-im-server和talent-im-client启动起来，然后用客户端发一些消息，观察本页面</h3>
+	
+	<div id="chat">
+	  <ol>
+	    <li v-for="chatRespBody in chatRespBodys">
+		    {{ chatRespBody.date }} <a v-bind:href="'#' + chatRespBody.fromId">{{ chatRespBody.fromNick }}</a> say: {{ chatRespBody.text }}
+	    </li>
+	  </ol>
+	</div>
+</body>
+
+<script src="index.js"></script>
+
+</html>

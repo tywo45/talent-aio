@@ -9,12 +9,10 @@ import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import javax.swing.DefaultListModel;
@@ -69,6 +67,8 @@ public class JFrameMain extends javax.swing.JFrame
 	public static boolean isNeedUpdateReceivedCount = false;
 	public static boolean isNeedUpdateSentCount = false;
 	
+	public static final String REMOVE_REMARK = "管理员删除";
+	
 	public static int MAX_LIST_COUNT = 20;  //列表最多显示多少条数据，多余的不显示
 	
 	/** 
@@ -116,6 +116,8 @@ public class JFrameMain extends javax.swing.JFrame
 
 			int closedCount = clientGroupContext.getCloseds().size();
 			instance.closedCountLabel.setText("断链" + numberFormat.format(closedCount));
+			
+			
 
 			//			log.error("{},{},{}", connectionCount, connectedCount, closedCount);
 		}
@@ -147,6 +149,9 @@ public class JFrameMain extends javax.swing.JFrame
 		}
 	}
 
+	
+	long lastupdateTime = SystemTimer.currentTimeMillis();
+	
 	/**
 	 * Creates new form JFrameMain
 	 */
@@ -176,31 +181,33 @@ public class JFrameMain extends javax.swing.JFrame
 			{
 				while (true)
 				{
-					updateConnectionCount();
-					updateReceivedLabel();
-					updateSentLabel();
-					
-					if (isNeedUpdateList)
+					long currTime = SystemTimer.currentTimeMillis();
+					long iv = currTime - lastupdateTime;
+					if (iv > 2000)
 					{
-						WriteLock writeLock = updatingListLock.writeLock();
-						if (writeLock.tryLock())
-						{
-							try
-							{
-								isNeedUpdateList =  false;
-								clients.updateUI();
-							} catch (Exception e)
-							{
-								log.error(e.toString(), e);
-							} finally {
-								writeLock.unlock();
-							}
-						}
+						isNeedUpdateConnectionCount = true;
+						isNeedUpdateReceivedCount = true;
+						isNeedUpdateSentCount = true;
+						isNeedUpdateList = true;
+						lastupdateTime = SystemTimer.currentTimeMillis();
+					}
+					
+					try
+					{
+						updateConnectionCount();
+						//Thread.sleep(2);
+						updateReceivedLabel();
+						//Thread.sleep(2);
+						updateSentLabel();
+						//Thread.sleep(2);
+					} catch (Exception e1)
+					{
+						log.error(e1.toString(), e1);
 					}
 
 					try
 					{
-						Thread.sleep(100L);
+						Thread.sleep(50L);
 					} catch (InterruptedException e)
 					{
 						log.error(e.toString(), e);
@@ -248,7 +255,7 @@ public class JFrameMain extends javax.swing.JFrame
         sentLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("talent-im-client-1.0.2.v20170217-SNAPSHOT");
+        setTitle("talent-im-client-1.0.2.v20170303-RELEASE");
 
         serverip.setText("127.0.0.1");
         serverip.addActionListener(new java.awt.event.ActionListener() {
@@ -280,6 +287,7 @@ public class JFrameMain extends javax.swing.JFrame
 
         clients.setFont(new java.awt.Font("宋体", 0, 18)); // NOI18N
         clients.setModel(listModel);
+        clients.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(clients);
 
         msgField.setText("he");
@@ -512,14 +520,12 @@ public class JFrameMain extends javax.swing.JFrame
 			int count = end - start;
 			final Node serverNode = new Node(serverip_, port_);
 			
-			
 			WriteLock writeLock = updatingListLock.writeLock();
 			writeLock.lock();
 			try
 			{
 				for (int i = 0; i < count; i++)
 				{
-					
 					ClientChannelContext<ImSessionContext, ImPacket, Object> channelContext = imClientStarter.getAioClient().connect(serverNode);
 					if (listModel.size() < MAX_LIST_COUNT)
 					{
@@ -528,15 +534,14 @@ public class JFrameMain extends javax.swing.JFrame
 							listModel.addElement(channelContext);
 						}
 					}
-					
 				}
+				clients.repaint();
 			} catch (Exception e)
 			{
 				log.error(e.toString(), e);
 			} finally {
 				writeLock.unlock();
 			}
-
 		} catch (Exception e)
 		{
 			String str = ExceptionUtils.getStackTrace(e);
@@ -680,88 +685,33 @@ public class JFrameMain extends javax.swing.JFrame
         // TODO add your handling code here:
 //    	synchronized (clients)
 //		{
-			List<ClientChannelContext<ImSessionContext, ImPacket, Object>> selecteds = clients.getSelectedValuesList();
-			if (selecteds == null || selecteds.size() == 0)
-			{
-				log.error("请选中要删除的连接");
-				return;
-			} else
+		List<ClientChannelContext<ImSessionContext, ImPacket, Object>> selecteds = clients.getSelectedValuesList();
+		if (selecteds == null || selecteds.size() == 0)
 		{
-			List<ClientChannelContext<ImSessionContext, ImPacket, Object>> dest = new ArrayList<>(selecteds.size());
-			for (ClientChannelContext<ImSessionContext, ImPacket, Object> cc : selecteds)
-			{
-				if (cc != null)
-				{
-					dest.add(cc);
-				}
-			}
-
-			WriteLock updatingListWriteLock = updatingListLock.writeLock();
-			updatingListWriteLock.lock();
+			log.error("请选中要删除的连接");
+			return;
+		} else
+		{
+//			WriteLock updatingListWriteLock = JFrameMain.updatingListLock.writeLock();
+//			updatingListWriteLock.lock();
 			try
 			{
-				for (ClientChannelContext<ImSessionContext, ImPacket, Object> cc : dest)
+				for (ClientChannelContext<ImSessionContext, ImPacket, Object> cc : selecteds)
 				{
 					if (cc != null)
 					{
-						try
-						{
-							Aio.remove(cc, "管理员删除");
-							listModel.removeElement(cc);
-						} catch (Exception e)
-						{
-							log.error(e.toString(), e);
-						}
+						//log.error("准备删除:{}", cc);
+						//listModel.removeElement(cc);
+						Aio.remove(cc, REMOVE_REMARK);
 					}
 				}
 			} catch (Exception e)
 			{
 				log.error(e.toString(), e);
-			} finally
-			{
-				updatingListWriteLock.unlock();
+			} finally {
+//				updatingListWriteLock.unlock();
 			}
-
 			
-			ClientGroupContext<ImSessionContext, ImPacket, Object> clientGroupContext = imClientStarter.getClientGroupContext();
-			ObjWithLock<Set<ChannelContext<ImSessionContext, ImPacket, Object>>> setWithLock = clientGroupContext.getConnections().getSetWithLock();
-			Set<ChannelContext<ImSessionContext, ImPacket, Object>> set = setWithLock.getObj();
-			ReadLock readLock = setWithLock.getLock().readLock();
-			if (listModel.size() < MAX_LIST_COUNT && set.size() > listModel.size())
-			{
-				updatingListWriteLock.lock();
-				try
-				{
-//					listModel.clear();
-					readLock.lock();
-					for (ChannelContext<ImSessionContext, ImPacket, Object> channelContext : set)
-					{
-						if (listModel.size() < MAX_LIST_COUNT)
-						{
-							if (channelContext != null)
-							{
-								if (listModel.contains(channelContext))
-								{
-									continue;
-								} else
-								{
-									listModel.addElement((ClientChannelContext<ImSessionContext, ImPacket, Object>) channelContext);
-								}
-							}
-						} else
-						{
-							break;
-						}
-					}
-				} catch (Exception e)
-				{
-					log.error(e.toString(), e);
-				} finally
-				{
-					updatingListWriteLock.unlock();
-					readLock.unlock();
-				}
-			}
 
 		}
 //		}

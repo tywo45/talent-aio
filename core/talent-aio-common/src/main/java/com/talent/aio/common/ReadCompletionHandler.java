@@ -71,35 +71,13 @@ public class ReadCompletionHandler<SessionContext, P extends Packet, R> implemen
 	@Override
 	public void completed(Integer result, ByteBuffer byteBuffer)
 	{
-		if (channelContext.isClosed() || channelContext.isRemoved())
-		{
-			log.error("{} isclosed:{}, isremoved:{}", channelContext, channelContext.isClosed(), channelContext.isRemoved());
-			return;
-		}
-		
 		GroupContext<SessionContext, P, R> groupContext = channelContext.getGroupContext();
 		if (result > 0)
 		{
-//			byteBuffer.limit(byteBuffer.position());
-//			byteBuffer.position(0);
-			
-			
-//			byte[] dest = new byte[readByteBuffer.position()];
-//			System.arraycopy(readByteBuffer.array(), 0, dest, 0, dest.length);
-//			ByteBuffer newByteBuffer = ByteBuffer.wrap(dest);
-			
-			
-			
-			
 			ByteBuffer newByteBuffer = ByteBufferUtils.copy(readByteBuffer, 0, readByteBuffer.position());
-			
-
-			
 			DecodeRunnable<SessionContext, P, R> decodeRunnable = channelContext.getDecodeRunnable();
 			decodeRunnable.addMsg(newByteBuffer);
-
 			groupContext.getDecodeExecutor().execute(decodeRunnable);
-
 		} else if (result == 0)
 		{
 			log.error("读到的数据长度为0");
@@ -111,7 +89,6 @@ public class ReadCompletionHandler<SessionContext, P extends Packet, R> implemen
 		if (AioUtils.checkBeforeIO(channelContext))
 		{
 			AsynchronousSocketChannel asynchronousSocketChannel = channelContext.getAsynchronousSocketChannel();
-//			ByteBuffer newByteBuffer = ByteBuffer.allocate(channelContext.getGroupContext().getReadBufferSize());
 			readByteBuffer.position(0);
 			readByteBuffer.limit(readByteBuffer.capacity());
 			asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, this);

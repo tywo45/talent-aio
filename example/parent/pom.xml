@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>com.talent-aio</groupId>
 		<artifactId>talent-aio-parent</artifactId>
-		<version>1.0.2.v20170217-SNAPSHOT</version>
+		<version>1.0.2.v20170303-RELEASE</version>
 		<relativePath>../../parent/pom.xml</relativePath>
 	</parent>
 
@@ -26,9 +26,6 @@
 		<module>../helloworld/talent-aio-examples-helloworld-client</module>
 		<module>../helloworld/talent-aio-examples-helloworld-server</module>
 
-		<module>../http/talent-aio-examples-http-common</module>
-		<module>../http/talent-aio-examples-http-client</module>
-		<module>../http/talent-aio-examples-http-server</module>
 	</modules>
 
 

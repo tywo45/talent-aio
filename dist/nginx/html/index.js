@@ -7,8 +7,8 @@ var reconnLock = false;      //避免重复连接
 var needconn = true;      //是否需要重连
 
 var lastInteractionTime = 0;//上一次交互时间
-var heartbeatTimeout = 60 * 1000;
-var heartbeatCheckInterval = heartbeatTimeout / 2;
+var heartbeatTimeout = 20 * 1000;
+var heartbeatSendInterval = heartbeatTimeout / 2;
 
 var stat = {
 	received : 0  //收到次数
@@ -185,12 +185,13 @@ function ping()
 {
 	var nowTime = new Date().getTime();
 	var iv = nowTime - lastInteractionTime; // 已经多久没发消息了
-	if ((heartbeatCheckInterval + iv) >= heartbeatTimeout) {
+	console.log((heartbeatSendInterval + iv) >= heartbeatTimeout);
+	if ((heartbeatSendInterval + iv) >= heartbeatTimeout) {
 		var command = Command.values.COMMAND_HEARTBEAT_REQ;
 		sendBuffer(ws, command, null);
 	}
 }
-setInterval("ping()", heartbeatCheckInterval);
+setInterval("ping()", heartbeatSendInterval);
 
 
 /**
@@ -216,8 +217,22 @@ handler.COMMAND_JOIN_GROUP_RESP = function(uint8Array, event, ws){
 	console.log(respBody);
 };
 
+
+var chat = new Vue({
+  el: '#chat',
+  data: {
+    chatRespBodys: [
+      
+    ]
+  }
+});
 handler.COMMAND_CHAT_RESP = function(uint8Array, event, ws){
 	var respBody = ChatRespBody.decode(uint8Array);
 	console.log("收到聊天消息:" + stat.received + "-" + respBody.text);
 	console.log(respBody);
+	console.log(respBody.time);
+	console.log(respBody.time.toNumber());
+	
+	respBody.date = new Date(respBody.time.toNumber()).format('yyyy-MM-dd hh:mm:ss.S');
+	chat.chatRespBodys.push(respBody);
 };

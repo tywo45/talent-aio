@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talent.aio.client.ReconnConf;
 import com.talent.aio.common.intf.AioHandler;
 import com.talent.aio.common.intf.AioListener;
 import com.talent.aio.common.intf.Packet;

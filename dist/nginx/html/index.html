@@ -7,9 +7,24 @@
 <script src="lib/bytebuffer.js"></script>
 <script src="lib/protobuf.js"></script>
 
-<script src="index.js"></script>
+<script src="lib/vue.js"></script>
+
+<script src="lib/talent.js"></script>
+
+
 </head>
 <body>
-	<h1>先把talent-im启动起来，然后用f12查看整个过程(后续再加界面)
+	<h3>先把talent-im-server和talent-im-client启动起来，然后用客户端发一些消息，观察本页面</h3>
+	
+	<div id="chat">
+	  <ol>
+	    <li v-for="chatRespBody in chatRespBodys">
+		    {{ chatRespBody.date }} <a v-bind:href="'#' + chatRespBody.fromId">{{ chatRespBody.fromNick }}</a> say: {{ chatRespBody.text }}
+	    </li>
+	  </ol>
+	</div>
 </body>
+
+<script src="index.js"></script>
+
 </html>

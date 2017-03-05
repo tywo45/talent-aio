@@ -6,7 +6,6 @@ package com.talent.aio.common.threadpool;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -85,38 +84,10 @@ public class DefaultRejectedExecutionHandler<R extends SynRunnableIntf> implemen
 			{
 				try
 				{
-					if (log.isInfoEnabled())
-					{
-						log.debug("deque in run:{},hashcode:{}", deque.size(), deque.hashCode());
-					}
-
-					if (deque.size() > 0)
-					{
-						int maximumPoolSize = executor.getMaximumPoolSize();
-						int poolSize = executor.getPoolSize();
-						int activeCount = executor.getActiveCount();
-						log.debug("poolsize:{}, activeCount:{}, maximumsize:{}", poolSize, activeCount, maximumPoolSize);
-						if (maximumPoolSize == activeCount)
-						{
-							log.debug("maximumPoolSize({}) == activeCount({})", maximumPoolSize, activeCount);
-							try
-							{
-								long sleeptime = 1;
-								Thread.sleep(sleeptime);
-							} catch (java.lang.Throwable e)
-							{
-								log.error(e.toString(), e);
-							}
-							continue;
-						}
-					}
-
-					Runnable r = deque.poll(6, TimeUnit.SECONDS);
-					if (r != null)
-					{
-						executor.execute(r);
-						log.debug("submit a runnable, {} runnables waiting for submit", deque.size());
-					}
+					Runnable r = deque.take();
+					executor.execute(r);
+					log.debug("submit a runnable, {} runnables waiting for submit", deque.size());
+					
 				} catch (java.lang.Throwable e)
 				{
 					log.error(e.toString(), e);

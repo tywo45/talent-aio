@@ -13,6 +13,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talent.aio.common.threadpool.intf.SynRunnableIntf;
 
 /**
@@ -24,6 +27,7 @@ import com.talent.aio.common.threadpool.intf.SynRunnableIntf;
  */
 public class SynThreadPoolExecutor<T extends SynRunnableIntf> extends ThreadPoolExecutor implements java.lang.Comparable<SynThreadPoolExecutor<T>>
 {
+	private static Logger log = LoggerFactory.getLogger(SynThreadPoolExecutor.class);
 
 	/** The Constant CORE_POOL_NUM. */
 	public final static int CORE_POOL_NUM = 5;
@@ -197,6 +201,7 @@ public class SynThreadPoolExecutor<T extends SynRunnableIntf> extends ThreadPool
 		T runnable = (T) _runnable;
 		if (checkBeforeExecute(runnable))
 		{
+//			log.error("提交任务:{}", _runnable.getClass().getSimpleName());
 			super.execute(runnable);
 		}
 	}

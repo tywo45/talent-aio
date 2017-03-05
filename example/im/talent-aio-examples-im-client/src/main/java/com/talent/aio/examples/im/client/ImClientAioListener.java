@@ -12,13 +12,22 @@
 package com.talent.aio.examples.im.client;
 
 import java.text.NumberFormat;
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talent.aio.client.ClientChannelContext;
+import com.talent.aio.client.ClientGroupContext;
 import com.talent.aio.client.intf.ClientAioListener;
 import com.talent.aio.common.Aio;
 import com.talent.aio.common.ChannelContext;
+import com.talent.aio.common.ObjWithLock;
 import com.talent.aio.common.utils.SystemTimer;
 import com.talent.aio.examples.im.client.ui.JFrameMain;
 import com.talent.aio.examples.im.common.CommandStat;
@@ -41,6 +50,7 @@ public class ImClientAioListener implements ClientAioListener<ImSessionContext, 
 	private static Logger log = LoggerFactory.getLogger(ImClientAioListener.class);
 
 	private static ImPacket handshakeReqPacket = new ImPacket(Command.COMMAND_HANDSHAKE_REQ);
+
 	/**
 	 * 
 	 *
@@ -63,40 +73,56 @@ public class ImClientAioListener implements ClientAioListener<ImSessionContext, 
 	{
 	}
 
-//	@Override
-//	public void onAfterReconnected(ChannelContext<ImSessionContext, ImPacket, Object> initChannelContext, boolean isConnected)
-//	{
-//		if (isConnected)
-//		{
-//			JFrameMain.isNeedUpdateList = true;
-//			JFrameMain.isNeedUpdateConnectionCount = true;
-//		}
-//	}
+	//	@Override
+	//	public void onAfterReconnected(ChannelContext<ImSessionContext, ImPacket, Object> initChannelContext, boolean isConnected)
+	//	{
+	//		if (isConnected)
+	//		{
+	//			JFrameMain.isNeedUpdateList = true;
+	//			JFrameMain.isNeedUpdateConnectionCount = true;
+	//		}
+	//	}
 
 	@Override
 	public void onAfterConnected(ChannelContext<ImSessionContext, ImPacket, Object> channelContext, boolean isConnected, boolean isReconnect)
 	{
-		if (!isReconnect)
-		{
-			ImSessionContext imSessionContext = new ImSessionContext();
-			channelContext.setSessionContext(imSessionContext);
-		}
+		JFrameMain jFrameMain = JFrameMain.getInstance();
 		
+		ImSessionContext imSessionContext = new ImSessionContext();
+		channelContext.setSessionContext(imSessionContext);
+
+		ClientChannelContext<ImSessionContext, ImPacket, Object> clientChannelContext = (ClientChannelContext<ImSessionContext, ImPacket, Object>) channelContext;
+		
+		if (jFrameMain.getListModel().contains(clientChannelContext))
+		{
+			WriteLock writeLock = JFrameMain.updatingListLock.writeLock();
+			writeLock.lock();
+			
+			try
+			{
+				jFrameMain.getClients().repaint();
+			} catch (Exception e)
+			{
+				log.error(e.toString(), e);
+			}finally{
+				writeLock.unlock();
+			}
+		}
+
 		JFrameMain.isNeedUpdateConnectionCount = true;
 		if (isReconnect && isConnected)
 		{
 			JFrameMain.isNeedUpdateList = true;
 		}
-		
+
 		if (!isConnected)
 		{
 			//没连上
 			return;
 		}
-		
-		
+
 		Aio.send(channelContext, handshakeReqPacket);
-		
+
 		return;
 	}
 
@@ -118,7 +144,7 @@ public class ImClientAioListener implements ClientAioListener<ImSessionContext, 
 			JFrameMain.sentPackets.incrementAndGet();
 
 			JFrameMain.isNeedUpdateSentCount = true;
-			
+
 		}
 	}
 
@@ -136,23 +162,17 @@ public class ImClientAioListener implements ClientAioListener<ImSessionContext, 
 	public void onAfterReceived(ChannelContext<ImSessionContext, ImPacket, Object> channelContext, ImPacket packet, int packetSize)
 	{
 		CommandStat.getCount(packet.getCommand()).received.incrementAndGet();
-//		com.talent.aio.examples.im.client.ui.JFrameMain.updateReceivedLabel();
-		
-		
-		
+		//		com.talent.aio.examples.im.client.ui.JFrameMain.updateReceivedLabel();
+
 		JFrameMain.isNeedUpdateReceivedCount = true;
-		
-		
-		
-		
-		
+
 		long receivedPacket = JFrameMain.receivedPackets.incrementAndGet();
 		long sentPacket = JFrameMain.sentPackets.get();
 		if (receivedPacket <= 10 || sentPacket <= 10)
 		{
 			return;
 		}
-		
+
 		long time = SystemTimer.currentTimeMillis();
 
 		JFrameMain frameMain = JFrameMain.getInstance();
@@ -175,25 +195,21 @@ public class ImClientAioListener implements ClientAioListener<ImSessionContext, 
 			long sentBytes = nowSentBytes - initSentBytes;
 
 			double perReceivedPacket = Math.ceil(((double) receivedPacket / (double) in) * (double) 1000);
-			double perReceivedBytes = Math.ceil(((double) receivedBytes / (double) in) * (double) 1000 );
-			
+			double perReceivedBytes = Math.ceil(((double) receivedBytes / (double) in) * (double) 1000);
+
 			double perSentPacket = Math.ceil(((double) sentPacket / (double) in) * (double) 1000);
 			double perSentBytes = Math.ceil(((double) sentBytes / (double) in) * (double) 1000);
 
-			
 			NumberFormat numberFormat = NumberFormat.getInstance();
-			
-			
+
 			//汇总：耗时31毫秒、接收消息100条共10KB，发送消息100条共30KB
 			//每秒：接收消息100条共10KB，发送消息100条共30KB
-			log.error("\r\n汇总：耗时{}毫秒，接收消息{}条共{}B，发送消息{}条共{}B \r\n"
-					+ "每秒：接收消息{}条共{}B，发送消息{}条共{}B\r\n"
-					+ "接收消息每条平均{}B，发送消息每条平均{}B\r\n",
-					numberFormat.format(in), numberFormat.format(receivedPacket), numberFormat.format(receivedBytes), numberFormat.format(sentPacket), numberFormat.format(sentBytes),
-							numberFormat.format(perReceivedPacket), numberFormat.format(perReceivedBytes), numberFormat.format(perSentPacket), numberFormat.format(perSentBytes),
-									numberFormat.format(Math.ceil((receivedBytes / receivedPacket))), numberFormat.format(Math.ceil((sentBytes / sentPacket))));
+			log.error("\r\n汇总：耗时{}毫秒，接收消息{}条共{}B，发送消息{}条共{}B \r\n" + "每秒：接收消息{}条共{}B，发送消息{}条共{}B\r\n" + "接收消息每条平均{}B，发送消息每条平均{}B\r\n", numberFormat.format(in),
+					numberFormat.format(receivedPacket), numberFormat.format(receivedBytes), numberFormat.format(sentPacket), numberFormat.format(sentBytes),
+					numberFormat.format(perReceivedPacket), numberFormat.format(perReceivedBytes), numberFormat.format(perSentPacket), numberFormat.format(perSentBytes),
+					numberFormat.format(Math.ceil((receivedBytes / receivedPacket))), numberFormat.format(Math.ceil((sentBytes / sentPacket))));
 		}
-		
+
 	}
 
 	/** 
@@ -211,17 +227,67 @@ public class ImClientAioListener implements ClientAioListener<ImSessionContext, 
 	{
 		ImSessionContext imSessionContext = channelContext.getSessionContext();
 		imSessionContext.setHandshaked(false);
+
+		JFrameMain jFrameMain = JFrameMain.getInstance();
 		
-		if (!isRemove)
-		{
-			JFrameMain.isNeedUpdateList = true;
+		WriteLock updatingListWriteLock = JFrameMain.updatingListLock.writeLock();
+		DefaultListModel<ClientChannelContext<ImSessionContext, ImPacket, Object>> listModel = jFrameMain.getListModel();
+		
+		
+		
+		if (listModel.contains(channelContext)){
+			updatingListWriteLock.lock();
+			JList<ClientChannelContext<ImSessionContext, ImPacket, Object>> clients = jFrameMain.getClients();
+			
+			try
+			{
+				if (isRemove)
+				{
+					listModel.removeElement(channelContext);
+				}
+				
+				ClientGroupContext<ImSessionContext, ImPacket, Object> clientGroupContext = (ClientGroupContext<ImSessionContext, ImPacket, Object>) channelContext
+						.getGroupContext();
+				ObjWithLock<Set<ChannelContext<ImSessionContext, ImPacket, Object>>> setWithLock = clientGroupContext.getConnections().getSetWithLock();
+				Set<ChannelContext<ImSessionContext, ImPacket, Object>> set = setWithLock.getObj();
+				ReadLock readLock = setWithLock.getLock().readLock();
+
+				try
+				{
+					readLock.lock();
+					for (ChannelContext<ImSessionContext, ImPacket, Object> channelContext1 : set)
+					{
+						if (!listModel.contains(channelContext1))
+						{
+							if (listModel.size() < JFrameMain.MAX_LIST_COUNT)
+							{
+								listModel.addElement((ClientChannelContext<ImSessionContext, ImPacket, Object>) channelContext1);
+							} else
+							{
+								break;
+							}
+						}
+					}
+				} catch (Exception e)
+				{
+					log.error(e.toString(), e);
+				} finally
+				{
+					readLock.unlock();
+				}
+				jFrameMain.getClients().repaint();
+
+			} catch (Exception e)
+			{
+				log.error(e.toString(), e);
+			} finally
+			{
+				updatingListWriteLock.unlock();
+			}
+		} else {
+			//updatingListWriteLock.unlock();
 		}
-		
+
 		JFrameMain.isNeedUpdateConnectionCount = true;
 	}
-	
-	
-
-	
-
 }

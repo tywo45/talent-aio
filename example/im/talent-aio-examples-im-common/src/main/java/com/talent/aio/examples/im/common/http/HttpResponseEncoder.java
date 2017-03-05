@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +24,6 @@ import com.talent.aio.common.GroupContext;
 import com.talent.aio.examples.im.common.ImPacket;
 import com.talent.aio.examples.im.common.ImSessionContext;
 import com.talent.aio.examples.im.common.http.HttpRequestPacket.RequestLine;
-import com.talent.aio.examples.im.common.utils.BASE64Util;
-import com.talent.aio.examples.im.common.utils.SHA1Util;
 
 /**
  * 

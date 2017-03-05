@@ -33,6 +33,11 @@ import com.talent.aio.examples.im.common.ImSessionContext;
  */
 public class ImListCellRenderer extends DefaultListCellRenderer
 {
+	/**
+	 * @含义: 
+	 * @类型: long
+	 */
+	private static final long serialVersionUID = 1L;
 	private Color okColor;
 	private Color warnColor;
 
@@ -46,6 +51,7 @@ public class ImListCellRenderer extends DefaultListCellRenderer
 
 	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 	{
+		@SuppressWarnings("unchecked")
 		ClientChannelContext<ImSessionContext, ImPacket, Object> channelContext = (ClientChannelContext<ImSessionContext, ImPacket, Object>) value;
 		super.getListCellRendererComponent(list, channelContext, index, isSelected, cellHasFocus);
 

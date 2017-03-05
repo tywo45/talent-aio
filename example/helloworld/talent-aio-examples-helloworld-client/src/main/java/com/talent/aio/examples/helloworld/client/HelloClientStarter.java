@@ -14,11 +14,11 @@ package com.talent.aio.examples.helloworld.client;
 import com.talent.aio.client.AioClient;
 import com.talent.aio.client.ClientChannelContext;
 import com.talent.aio.client.ClientGroupContext;
+import com.talent.aio.client.ReconnConf;
 import com.talent.aio.client.intf.ClientAioHandler;
 import com.talent.aio.client.intf.ClientAioListener;
 import com.talent.aio.common.Aio;
 import com.talent.aio.common.Node;
-import com.talent.aio.common.ReconnConf;
 import com.talent.aio.examples.helloworld.common.Const;
 import com.talent.aio.examples.helloworld.common.HelloPacket;
 

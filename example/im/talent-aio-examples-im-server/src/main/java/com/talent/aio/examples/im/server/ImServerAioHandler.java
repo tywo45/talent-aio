@@ -242,13 +242,14 @@ public class ImServerAioHandler implements ServerAioHandler<ImSessionContext, Im
 	public ImPacket decode(ByteBuffer buffer, ChannelContext<ImSessionContext, ImPacket, Object> channelContext) throws AioDecodeException
 	{
 		ImSessionContext imSessionContext = channelContext.getSessionContext();
-		byte firstbyte = buffer.get(0);
+		int initPosition = buffer.position();
+		byte firstbyte = buffer.get(initPosition);
 
 		if (!imSessionContext.isHandshaked())
 		{
 			if (ImPacket.HANDSHAKE_BYTE == firstbyte)
 			{
-				buffer.position(1);
+				buffer.position(1 + initPosition);
 				return handshakePacket;
 			} else
 			{
@@ -312,12 +313,12 @@ public class ImServerAioHandler implements ServerAioHandler<ImSessionContext, Im
 		{
 			if (ImPacket.HEARTBEAT_BYTE == firstbyte)
 			{
-				buffer.position(1);
+				buffer.position(1 + initPosition);
 				return heartbeatPacket;
 			}
 		}
 
-		int readableLength = buffer.limit() - buffer.position();
+		int readableLength = buffer.limit() - initPosition;
 
 		int headerLength = ImPacket.LEAST_HEADER_LENGHT;
 		ImPacket imPacket = null;

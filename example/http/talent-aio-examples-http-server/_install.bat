@@ -1,4 +1,0 @@
-call mvn install
-
-
-pause
