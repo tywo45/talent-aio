@@ -148,7 +148,7 @@
 			<li>talent-aio是将多线程技巧运用到极致的框架，所以一旦您参与到本项目，你将会从本项目中学到很多关于多线程的技巧。</li>
 			<li>本项目会陆续提供一些业界案例作为例子供大家参考，譬如融云的IM</li>
 			<li>
-			通过以下方式之一，加入talent-aio技术群 (这是个付费群，但是进群不是必须的，大家也可以在码云上和作者进行交流互动)
+			通过以下方式之一，加入talent-aio技术群 (<strong>这是个付费群，作者并不会通过这个群提供额外的资料和代码，但加入一个大牛如云的群，你会有意想不到的收获，比你参加各种培训要有收获得多</strong>)
 				<ul>
 					<li>通过群号加入: 428058412</li>
 					<li>点击加入: <a  target="_blank" href="http://shang.qq.com/wpa/qunwpa?idkey=95588b929b2832f606f4deb74a423d61257f3c08b9790ac57c29aebd09364459"><img border="0" src="http://pub.idqqimg.com/wpa/images/group.png" alt="talent-aio技术" title="talent-aio技术"></a></li>
