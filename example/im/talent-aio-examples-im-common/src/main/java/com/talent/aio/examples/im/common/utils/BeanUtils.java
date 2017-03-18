@@ -14,11 +14,6 @@ import org.apache.commons.beanutils.BeanUtilsBean2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.protobuf.ExtensionRegistry;
-import com.googlecode.protobuf.format.JsonFormat;
-import com.talent.aio.examples.im.common.json.Json;
-import com.talent.aio.examples.im.common.packets.AuthReqBody;
-
 // TODO: Auto-generated Javadoc
 /**
  * The Class BeanUtils.
@@ -60,26 +55,7 @@ public class BeanUtils
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		AuthReqBody.Builder builder = AuthReqBody.newBuilder();
-		Map<String, Object> map = new HashMap<>();
-		map.put("cid", "cid_33434");
 		
-		map.put("cidsssss", "cid_33434");
-		
-		
-		//protobuf to json
-//		Message someProto =SomeProto.getDefaultInstance();
-//		String jsonFormat =JsonFormat.printToString(someProto);
-		
-		//json to protobuf
-//		Message.Builder builder =SomeProto.newBuilder();
-		String json = Json.toJson(map);
-		JsonFormat jsonFormat = new JsonFormat();
-		jsonFormat.merge(json, ExtensionRegistry.newInstance(), builder);
-		AuthReqBody authReqBody = builder.build();
-
-		System.out.println(authReqBody);
-
 	}
 
 	/**

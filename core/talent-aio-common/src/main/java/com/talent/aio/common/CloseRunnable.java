@@ -4,6 +4,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,6 +186,25 @@ public class CloseRunnable<SessionContext, P extends Packet, R>  implements Runn
 					{
 						groupContext.getCloseds().add(channelContext);
 						groupContext.getConnecteds().remove(channelContext);
+						
+						if (StringUtils.isNotBlank(channelContext.getUserid()))
+						{
+							try
+							{
+								Aio.unbindUser(channelContext);
+							} catch (Throwable e)
+							{
+								log.error(e.toString(), e);
+							}
+						}
+
+						try
+						{
+							Aio.unbindGroup(channelContext);
+						} catch (Throwable e)
+						{
+							log.error(e.toString(), e);
+						}
 					}
 
 					try

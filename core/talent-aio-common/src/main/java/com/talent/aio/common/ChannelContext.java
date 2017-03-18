@@ -220,7 +220,7 @@ public abstract class ChannelContext<SessionContext, P extends Packet, R>
 		
 		this.clientNode = clientNode;
 		
-		if (this.clientNode != null)
+		if (this.clientNode != null && !Objects.equals(UNKNOWN_ADDRESS_IP, this.clientNode.getIp()))
 		{
 			try
 			{
@@ -408,9 +408,9 @@ public abstract class ChannelContext<SessionContext, P extends Packet, R>
 		{
 			if (clientNode == null || (!UNKNOWN_ADDRESS_IP.equals(clientNode.getIp())))
 			{
-				log.info("关闭前{}", this);
+				String before = this.toString();
 				assignAnUnknownClientNode();
-				log.info("关闭后{}", this);
+				log.info("关闭前{}, 关闭后{}", before, this);
 			}
 		}
 	}

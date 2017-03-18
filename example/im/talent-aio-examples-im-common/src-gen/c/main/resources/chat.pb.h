@@ -43,12 +43,24 @@ extern AuthReqBodyDefaultTypeInternal _AuthReqBody_default_instance_;
 class AuthRespBody;
 class AuthRespBodyDefaultTypeInternal;
 extern AuthRespBodyDefaultTypeInternal _AuthRespBody_default_instance_;
+class BeginToLiveReqBody;
+class BeginToLiveReqBodyDefaultTypeInternal;
+extern BeginToLiveReqBodyDefaultTypeInternal _BeginToLiveReqBody_default_instance_;
+class BeginToLiveRespBody;
+class BeginToLiveRespBodyDefaultTypeInternal;
+extern BeginToLiveRespBodyDefaultTypeInternal _BeginToLiveRespBody_default_instance_;
 class ChatReqBody;
 class ChatReqBodyDefaultTypeInternal;
 extern ChatReqBodyDefaultTypeInternal _ChatReqBody_default_instance_;
 class ChatRespBody;
 class ChatRespBodyDefaultTypeInternal;
 extern ChatRespBodyDefaultTypeInternal _ChatRespBody_default_instance_;
+class EndLiveReqBody;
+class EndLiveReqBodyDefaultTypeInternal;
+extern EndLiveReqBodyDefaultTypeInternal _EndLiveReqBody_default_instance_;
+class EndLiveRespBody;
+class EndLiveRespBodyDefaultTypeInternal;
+extern EndLiveRespBodyDefaultTypeInternal _EndLiveRespBody_default_instance_;
 class JoinReqBody;
 class JoinReqBodyDefaultTypeInternal;
 extern JoinReqBodyDefaultTypeInternal _JoinReqBody_default_instance_;
@@ -963,6 +975,382 @@ class ChatRespBody : public ::google::protobuf::Message /* @@protoc_insertion_po
   int type_;
   ::google::protobuf::int32 fromid_;
   ::google::protobuf::int32 toid_;
+  mutable int _cached_size_;
+  friend struct  protobuf_main_2fresources_2fchat_2eproto::TableStruct;
+};
+// -------------------------------------------------------------------
+
+class BeginToLiveReqBody : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:com.talent.aio.examples.im.common.packets.BeginToLiveReqBody) */ {
+ public:
+  BeginToLiveReqBody();
+  virtual ~BeginToLiveReqBody();
+
+  BeginToLiveReqBody(const BeginToLiveReqBody& from);
+
+  inline BeginToLiveReqBody& operator=(const BeginToLiveReqBody& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const BeginToLiveReqBody& default_instance();
+
+  static inline const BeginToLiveReqBody* internal_default_instance() {
+    return reinterpret_cast<const BeginToLiveReqBody*>(
+               &_BeginToLiveReqBody_default_instance_);
+  }
+
+  void Swap(BeginToLiveReqBody* other);
+
+  // implements Message ----------------------------------------------
+
+  inline BeginToLiveReqBody* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  BeginToLiveReqBody* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const BeginToLiveReqBody& from);
+  void MergeFrom(const BeginToLiveReqBody& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output)
+      const PROTOBUF_FINAL {
+    return InternalSerializeWithCachedSizesToArray(
+        ::google::protobuf::io::CodedOutputStream::IsDefaultSerializationDeterministic(), output);
+  }
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(BeginToLiveReqBody* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // int64 time = 1;
+  void clear_time();
+  static const int kTimeFieldNumber = 1;
+  ::google::protobuf::int64 time() const;
+  void set_time(::google::protobuf::int64 value);
+
+  // @@protoc_insertion_point(class_scope:com.talent.aio.examples.im.common.packets.BeginToLiveReqBody)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::int64 time_;
+  mutable int _cached_size_;
+  friend struct  protobuf_main_2fresources_2fchat_2eproto::TableStruct;
+};
+// -------------------------------------------------------------------
+
+class BeginToLiveRespBody : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody) */ {
+ public:
+  BeginToLiveRespBody();
+  virtual ~BeginToLiveRespBody();
+
+  BeginToLiveRespBody(const BeginToLiveRespBody& from);
+
+  inline BeginToLiveRespBody& operator=(const BeginToLiveRespBody& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const BeginToLiveRespBody& default_instance();
+
+  static inline const BeginToLiveRespBody* internal_default_instance() {
+    return reinterpret_cast<const BeginToLiveRespBody*>(
+               &_BeginToLiveRespBody_default_instance_);
+  }
+
+  void Swap(BeginToLiveRespBody* other);
+
+  // implements Message ----------------------------------------------
+
+  inline BeginToLiveRespBody* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  BeginToLiveRespBody* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const BeginToLiveRespBody& from);
+  void MergeFrom(const BeginToLiveRespBody& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output)
+      const PROTOBUF_FINAL {
+    return InternalSerializeWithCachedSizesToArray(
+        ::google::protobuf::io::CodedOutputStream::IsDefaultSerializationDeterministic(), output);
+  }
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(BeginToLiveRespBody* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // string rtmppublishurl = 3;
+  void clear_rtmppublishurl();
+  static const int kRtmppublishurlFieldNumber = 3;
+  const ::std::string& rtmppublishurl() const;
+  void set_rtmppublishurl(const ::std::string& value);
+  #if LANG_CXX11
+  void set_rtmppublishurl(::std::string&& value);
+  #endif
+  void set_rtmppublishurl(const char* value);
+  void set_rtmppublishurl(const char* value, size_t size);
+  ::std::string* mutable_rtmppublishurl();
+  ::std::string* release_rtmppublishurl();
+  void set_allocated_rtmppublishurl(::std::string* rtmppublishurl);
+
+  // string rtmpliveurl = 4;
+  void clear_rtmpliveurl();
+  static const int kRtmpliveurlFieldNumber = 4;
+  const ::std::string& rtmpliveurl() const;
+  void set_rtmpliveurl(const ::std::string& value);
+  #if LANG_CXX11
+  void set_rtmpliveurl(::std::string&& value);
+  #endif
+  void set_rtmpliveurl(const char* value);
+  void set_rtmpliveurl(const char* value, size_t size);
+  ::std::string* mutable_rtmpliveurl();
+  ::std::string* release_rtmpliveurl();
+  void set_allocated_rtmpliveurl(::std::string* rtmpliveurl);
+
+  // int64 time = 1;
+  void clear_time();
+  static const int kTimeFieldNumber = 1;
+  ::google::protobuf::int64 time() const;
+  void set_time(::google::protobuf::int64 value);
+
+  // int64 liveid = 2;
+  void clear_liveid();
+  static const int kLiveidFieldNumber = 2;
+  ::google::protobuf::int64 liveid() const;
+  void set_liveid(::google::protobuf::int64 value);
+
+  // @@protoc_insertion_point(class_scope:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr rtmppublishurl_;
+  ::google::protobuf::internal::ArenaStringPtr rtmpliveurl_;
+  ::google::protobuf::int64 time_;
+  ::google::protobuf::int64 liveid_;
+  mutable int _cached_size_;
+  friend struct  protobuf_main_2fresources_2fchat_2eproto::TableStruct;
+};
+// -------------------------------------------------------------------
+
+class EndLiveReqBody : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:com.talent.aio.examples.im.common.packets.EndLiveReqBody) */ {
+ public:
+  EndLiveReqBody();
+  virtual ~EndLiveReqBody();
+
+  EndLiveReqBody(const EndLiveReqBody& from);
+
+  inline EndLiveReqBody& operator=(const EndLiveReqBody& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const EndLiveReqBody& default_instance();
+
+  static inline const EndLiveReqBody* internal_default_instance() {
+    return reinterpret_cast<const EndLiveReqBody*>(
+               &_EndLiveReqBody_default_instance_);
+  }
+
+  void Swap(EndLiveReqBody* other);
+
+  // implements Message ----------------------------------------------
+
+  inline EndLiveReqBody* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  EndLiveReqBody* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const EndLiveReqBody& from);
+  void MergeFrom(const EndLiveReqBody& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output)
+      const PROTOBUF_FINAL {
+    return InternalSerializeWithCachedSizesToArray(
+        ::google::protobuf::io::CodedOutputStream::IsDefaultSerializationDeterministic(), output);
+  }
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(EndLiveReqBody* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // int64 time = 1;
+  void clear_time();
+  static const int kTimeFieldNumber = 1;
+  ::google::protobuf::int64 time() const;
+  void set_time(::google::protobuf::int64 value);
+
+  // @@protoc_insertion_point(class_scope:com.talent.aio.examples.im.common.packets.EndLiveReqBody)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::int64 time_;
+  mutable int _cached_size_;
+  friend struct  protobuf_main_2fresources_2fchat_2eproto::TableStruct;
+};
+// -------------------------------------------------------------------
+
+class EndLiveRespBody : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:com.talent.aio.examples.im.common.packets.EndLiveRespBody) */ {
+ public:
+  EndLiveRespBody();
+  virtual ~EndLiveRespBody();
+
+  EndLiveRespBody(const EndLiveRespBody& from);
+
+  inline EndLiveRespBody& operator=(const EndLiveRespBody& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const EndLiveRespBody& default_instance();
+
+  static inline const EndLiveRespBody* internal_default_instance() {
+    return reinterpret_cast<const EndLiveRespBody*>(
+               &_EndLiveRespBody_default_instance_);
+  }
+
+  void Swap(EndLiveRespBody* other);
+
+  // implements Message ----------------------------------------------
+
+  inline EndLiveRespBody* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  EndLiveRespBody* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const EndLiveRespBody& from);
+  void MergeFrom(const EndLiveRespBody& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output)
+      const PROTOBUF_FINAL {
+    return InternalSerializeWithCachedSizesToArray(
+        ::google::protobuf::io::CodedOutputStream::IsDefaultSerializationDeterministic(), output);
+  }
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(EndLiveRespBody* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // int64 time = 1;
+  void clear_time();
+  static const int kTimeFieldNumber = 1;
+  ::google::protobuf::int64 time() const;
+  void set_time(::google::protobuf::int64 value);
+
+  // int64 liveid = 2;
+  void clear_liveid();
+  static const int kLiveidFieldNumber = 2;
+  ::google::protobuf::int64 liveid() const;
+  void set_liveid(::google::protobuf::int64 value);
+
+  // @@protoc_insertion_point(class_scope:com.talent.aio.examples.im.common.packets.EndLiveRespBody)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::int64 time_;
+  ::google::protobuf::int64 liveid_;
   mutable int _cached_size_;
   friend struct  protobuf_main_2fresources_2fchat_2eproto::TableStruct;
 };
@@ -1970,7 +2358,219 @@ inline void ChatRespBody::set_allocated_group(::std::string* group) {
   // @@protoc_insertion_point(field_set_allocated:com.talent.aio.examples.im.common.packets.ChatRespBody.group)
 }
 
+// -------------------------------------------------------------------
+
+// BeginToLiveReqBody
+
+// int64 time = 1;
+inline void BeginToLiveReqBody::clear_time() {
+  time_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 BeginToLiveReqBody::time() const {
+  // @@protoc_insertion_point(field_get:com.talent.aio.examples.im.common.packets.BeginToLiveReqBody.time)
+  return time_;
+}
+inline void BeginToLiveReqBody::set_time(::google::protobuf::int64 value) {
+  
+  time_ = value;
+  // @@protoc_insertion_point(field_set:com.talent.aio.examples.im.common.packets.BeginToLiveReqBody.time)
+}
+
+// -------------------------------------------------------------------
+
+// BeginToLiveRespBody
+
+// int64 time = 1;
+inline void BeginToLiveRespBody::clear_time() {
+  time_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 BeginToLiveRespBody::time() const {
+  // @@protoc_insertion_point(field_get:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.time)
+  return time_;
+}
+inline void BeginToLiveRespBody::set_time(::google::protobuf::int64 value) {
+  
+  time_ = value;
+  // @@protoc_insertion_point(field_set:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.time)
+}
+
+// int64 liveid = 2;
+inline void BeginToLiveRespBody::clear_liveid() {
+  liveid_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 BeginToLiveRespBody::liveid() const {
+  // @@protoc_insertion_point(field_get:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.liveid)
+  return liveid_;
+}
+inline void BeginToLiveRespBody::set_liveid(::google::protobuf::int64 value) {
+  
+  liveid_ = value;
+  // @@protoc_insertion_point(field_set:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.liveid)
+}
+
+// string rtmppublishurl = 3;
+inline void BeginToLiveRespBody::clear_rtmppublishurl() {
+  rtmppublishurl_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& BeginToLiveRespBody::rtmppublishurl() const {
+  // @@protoc_insertion_point(field_get:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmppublishurl)
+  return rtmppublishurl_.GetNoArena();
+}
+inline void BeginToLiveRespBody::set_rtmppublishurl(const ::std::string& value) {
+  
+  rtmppublishurl_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmppublishurl)
+}
+#if LANG_CXX11
+inline void BeginToLiveRespBody::set_rtmppublishurl(::std::string&& value) {
+  
+  rtmppublishurl_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmppublishurl)
+}
+#endif
+inline void BeginToLiveRespBody::set_rtmppublishurl(const char* value) {
+  
+  rtmppublishurl_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmppublishurl)
+}
+inline void BeginToLiveRespBody::set_rtmppublishurl(const char* value, size_t size) {
+  
+  rtmppublishurl_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmppublishurl)
+}
+inline ::std::string* BeginToLiveRespBody::mutable_rtmppublishurl() {
+  
+  // @@protoc_insertion_point(field_mutable:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmppublishurl)
+  return rtmppublishurl_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* BeginToLiveRespBody::release_rtmppublishurl() {
+  // @@protoc_insertion_point(field_release:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmppublishurl)
+  
+  return rtmppublishurl_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void BeginToLiveRespBody::set_allocated_rtmppublishurl(::std::string* rtmppublishurl) {
+  if (rtmppublishurl != NULL) {
+    
+  } else {
+    
+  }
+  rtmppublishurl_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), rtmppublishurl);
+  // @@protoc_insertion_point(field_set_allocated:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmppublishurl)
+}
+
+// string rtmpliveurl = 4;
+inline void BeginToLiveRespBody::clear_rtmpliveurl() {
+  rtmpliveurl_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& BeginToLiveRespBody::rtmpliveurl() const {
+  // @@protoc_insertion_point(field_get:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmpliveurl)
+  return rtmpliveurl_.GetNoArena();
+}
+inline void BeginToLiveRespBody::set_rtmpliveurl(const ::std::string& value) {
+  
+  rtmpliveurl_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmpliveurl)
+}
+#if LANG_CXX11
+inline void BeginToLiveRespBody::set_rtmpliveurl(::std::string&& value) {
+  
+  rtmpliveurl_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmpliveurl)
+}
+#endif
+inline void BeginToLiveRespBody::set_rtmpliveurl(const char* value) {
+  
+  rtmpliveurl_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmpliveurl)
+}
+inline void BeginToLiveRespBody::set_rtmpliveurl(const char* value, size_t size) {
+  
+  rtmpliveurl_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmpliveurl)
+}
+inline ::std::string* BeginToLiveRespBody::mutable_rtmpliveurl() {
+  
+  // @@protoc_insertion_point(field_mutable:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmpliveurl)
+  return rtmpliveurl_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* BeginToLiveRespBody::release_rtmpliveurl() {
+  // @@protoc_insertion_point(field_release:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmpliveurl)
+  
+  return rtmpliveurl_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void BeginToLiveRespBody::set_allocated_rtmpliveurl(::std::string* rtmpliveurl) {
+  if (rtmpliveurl != NULL) {
+    
+  } else {
+    
+  }
+  rtmpliveurl_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), rtmpliveurl);
+  // @@protoc_insertion_point(field_set_allocated:com.talent.aio.examples.im.common.packets.BeginToLiveRespBody.rtmpliveurl)
+}
+
+// -------------------------------------------------------------------
+
+// EndLiveReqBody
+
+// int64 time = 1;
+inline void EndLiveReqBody::clear_time() {
+  time_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 EndLiveReqBody::time() const {
+  // @@protoc_insertion_point(field_get:com.talent.aio.examples.im.common.packets.EndLiveReqBody.time)
+  return time_;
+}
+inline void EndLiveReqBody::set_time(::google::protobuf::int64 value) {
+  
+  time_ = value;
+  // @@protoc_insertion_point(field_set:com.talent.aio.examples.im.common.packets.EndLiveReqBody.time)
+}
+
+// -------------------------------------------------------------------
+
+// EndLiveRespBody
+
+// int64 time = 1;
+inline void EndLiveRespBody::clear_time() {
+  time_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 EndLiveRespBody::time() const {
+  // @@protoc_insertion_point(field_get:com.talent.aio.examples.im.common.packets.EndLiveRespBody.time)
+  return time_;
+}
+inline void EndLiveRespBody::set_time(::google::protobuf::int64 value) {
+  
+  time_ = value;
+  // @@protoc_insertion_point(field_set:com.talent.aio.examples.im.common.packets.EndLiveRespBody.time)
+}
+
+// int64 liveid = 2;
+inline void EndLiveRespBody::clear_liveid() {
+  liveid_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 EndLiveRespBody::liveid() const {
+  // @@protoc_insertion_point(field_get:com.talent.aio.examples.im.common.packets.EndLiveRespBody.liveid)
+  return liveid_;
+}
+inline void EndLiveRespBody::set_liveid(::google::protobuf::int64 value) {
+  
+  liveid_ = value;
+  // @@protoc_insertion_point(field_set:com.talent.aio.examples.im.common.packets.EndLiveRespBody.liveid)
+}
+
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

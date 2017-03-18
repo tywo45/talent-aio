@@ -73,7 +73,7 @@
 			<div class="col-md-6">
 				<div class="bs-callout bs-callout-info" role="alert" style="font-size:14pt;height:200px;">
 				  <h4>简 介</h4>
-				  <strong>talent-aio</strong>是基于java aio实现的即时通讯框架，源于作者另一个久经考验的talent-nio框架，但在易用性、性能及代码可读性方面又远远超越了talent-nio（最好的东西才拿来分享，所以talent-aio开源，但talent-nio并不会开源）。同类框架有netty和mina。
+				  <strong>talent-aio</strong>是基于java aio实现的TCP长连接框架。<strong>稳定、易用、内置功能丰富、性能强悍</strong>是其特点。用本框架可以方便地实现<strong>IM、RPC、实时监控</strong>等功能。
 				</div>
 			</div>
 			
@@ -105,7 +105,7 @@
 								可同时支持<strong>10万级</strong>tcp长连接，彻底甩开业界当年的<strong>c10K</strong>烦恼
 							</li>
 							<li>
-								收发<strong>200万</strong>条消息(约<strong>137M</strong>)，只需要<strong>1440毫秒</strong>(windows7、i7、8g、群聊场景)
+								最高时，每秒可以收发<strong>283万</strong>条消息(约<strong>80M</strong>)(windows7、i7、8g、群聊场景)
 							</li>
 						</ul>
 					  </li>
@@ -127,12 +127,12 @@
 							<li>
 								框架层面支持<strong>绑定userid</strong>(用于用户关联)、<strong>绑定groupid</strong>(用于群聊)
 							</li>
+							<li>
+								内置各项统计功能----接受过多少连接、关闭过多少连接、已发送的消息数、已接收的消息数、当前是多少正常连接、当前多少断开的连接等。
+							</li>
 						</ul>
 					  </li>
 					  
-					  <li>
-						天生<strong>没有粘包问题</strong>
-					  </li>
 					  
 					</ul>
 				</div>

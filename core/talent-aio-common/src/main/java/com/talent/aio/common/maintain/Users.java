@@ -37,6 +37,14 @@ public class Users<SessionContext, P extends Packet, R>
 			new DualHashBidiMap<String, ChannelContext<SessionContext, P, R>>());
 
 	/**
+	 * @return the map
+	 */
+	public ObjWithLock<DualHashBidiMap<String, ChannelContext<SessionContext, P, R>>> getMap()
+	{
+		return map;
+	}
+
+	/**
 	 * 解除绑定
 	 *
 	 * @param channelContext the channel context

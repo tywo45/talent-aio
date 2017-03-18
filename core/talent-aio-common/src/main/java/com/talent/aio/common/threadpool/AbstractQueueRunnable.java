@@ -21,7 +21,7 @@ import com.talent.aio.common.threadpool.intf.QueueRunnableIntf;
  */
 public abstract class AbstractQueueRunnable<T> extends AbstractSynRunnable implements QueueRunnableIntf<T>
 {
-	private static final Logger log = LoggerFactory.getLogger(HandlerRunnable.class);
+	private static final Logger log = LoggerFactory.getLogger(AbstractQueueRunnable.class);
 	
 	/**
 	 * Instantiates a new abstract queue runnable.

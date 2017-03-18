@@ -1,1 +1,1 @@
-java -Xms64m -Xmx2048m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=c:/java_talent-aio-im-client_pid.hprof -jar talent-aio-im-client.jar
+java -Xms64m -Xmx2048m -XX:+HeapDumpOnOutOfMemoryError -Dtalent.aio.default.read.buffer.size=512 -Dtalent.aio.default.read.buffer.size=512 -XX:HeapDumpPath=c:/java_talent-aio-im-client_pid.hprof -jar talent-aio-im-client.jar

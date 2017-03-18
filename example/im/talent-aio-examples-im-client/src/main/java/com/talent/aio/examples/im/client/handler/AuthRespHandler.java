@@ -14,6 +14,8 @@ import com.talent.aio.examples.im.common.ImPacket;
 import com.talent.aio.examples.im.common.ImSessionContext;
 import com.talent.aio.examples.im.common.packets.Command;
 import com.talent.aio.examples.im.common.packets.JoinReqBody;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 /**
  * 
@@ -52,7 +54,12 @@ public class AuthRespHandler implements ImAioHandlerIntf
 	 */
 	public static void main(String[] args)
 	{
-
+		Config conf = ConfigFactory.load("app.conf");
+		int bar1 = conf.getInt("client.count");
+//		Config foo = conf.getConfig("foo");
+//		int bar2 = foo.getInt("bar");
+		
+		System.out.println(bar1);
 	}
 
 	/** 

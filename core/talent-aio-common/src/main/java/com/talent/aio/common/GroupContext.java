@@ -55,12 +55,12 @@ public abstract class GroupContext<SessionContext, P extends Packet, R>
 	/**
 	 * 默认的心跳超时时间(单位: 毫秒)
 	 */
-	public static final long DEFAULT_HEARTBEAT_TIMEOUT = 1000 * 60;
+	public static final long DEFAULT_HEARTBEAT_TIMEOUT = 1000 * 120;
 
 	/** 
 	 * 默认的接收数据的buffer size
 	 */
-	public static final int READ_BUFFER_SIZE = 2048;
+	public static final int READ_BUFFER_SIZE = Integer.getInteger("talent.aio.default.read.buffer.size", 2048);
 
 //	public static final int MAXIMUM_POOL_SIZE = CORE_POOL_SIZE * 4;
 

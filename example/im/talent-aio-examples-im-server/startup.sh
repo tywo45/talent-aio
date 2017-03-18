@@ -1,2 +1,2 @@
 #!/bin/sh
-nohup java -Xms64m -Xmx2048m -Djava.nio.channels.spi.SelectorProvider=sun.nio.ch.EPollSelectorProvider -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=~/java_talent-aio-im-server_pid.hprof -jar talent-aio-im-server.jar &
+nohup java -Xms64m -Xmx2048m -Djava.nio.channels.spi.SelectorProvider=sun.nio.ch.EPollSelectorProvider -XX:+HeapDumpOnOutOfMemoryError -Dtalent.aio.default.read.buffer.size=512 -XX:HeapDumpPath=./java_talent-aio-im-server_pid.hprof -jar talent-aio-im-server.jar &

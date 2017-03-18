@@ -38,16 +38,38 @@ public class Groups<SessionContext, P extends Packet, R>
 	/** The log. */
 	private static Logger log = LoggerFactory.getLogger(Groups.class);
 
-	/** 一个组有哪些客户端 key: groupid value: Set<ChannelContext<?, ?, ?>. */
+	/** 一个组有哪些客户端
+	 * key: groupid
+	 * value: Set<ChannelContext<?, ?, ?>
+	 */
 	private ObjWithLock<Map<String, ObjWithLock<Set<ChannelContext<SessionContext, P, R>>>>> groupmap = new ObjWithLock<Map<String, ObjWithLock<Set<ChannelContext<SessionContext, P, R>>>>>(
 			new ConcurrentHashMap<String, ObjWithLock<Set<ChannelContext<SessionContext, P, R>>>>());
 
-	/** 一个客户端在哪组组中 key: ChannelContext value: Set<groupid<?, ?, ?>. */
+	/** 一个客户端在哪组组中
+	 *  key: ChannelContext
+	 *  value: Set<groupid<?, ?, ?>
+	 */
 	private ObjWithLock<Map<ChannelContext<SessionContext, P, R>, ObjWithLock<Set<String>>>> channelmap = new ObjWithLock<Map<ChannelContext<SessionContext, P, R>, ObjWithLock<Set<String>>>>(
 			new ConcurrentHashMap<ChannelContext<SessionContext, P, R>, ObjWithLock<Set<String>>>());
 
 	/**
-	 * 与组解除绑定
+	 * @return the groupmap
+	 */
+	public ObjWithLock<Map<String, ObjWithLock<Set<ChannelContext<SessionContext, P, R>>>>> getGroupmap()
+	{
+		return groupmap;
+	}
+
+	/**
+	 * @return the channelmap
+	 */
+	public ObjWithLock<Map<ChannelContext<SessionContext, P, R>, ObjWithLock<Set<String>>>> getChannelmap()
+	{
+		return channelmap;
+	}
+
+	/**
+	 * 与所有组解除绑定
 	 *
 	 * @param <Ext> the generic type
 	 * @param <P> the generic type
@@ -57,7 +79,6 @@ public class Groups<SessionContext, P extends Packet, R>
 	public void unbind(ChannelContext<SessionContext, P, R> channelContext)
 	{
 		Lock lock = channelmap.getLock().writeLock();
-
 		try
 		{
 			ObjWithLock<Set<String>> set = null;
@@ -93,7 +114,7 @@ public class Groups<SessionContext, P extends Packet, R>
 	}
 
 	/**
-	 * 与组解除绑定
+	 * 与指定组解除绑定
 	 *
 	 * @param <Ext> the generic type
 	 * @param <P> the generic type
@@ -103,7 +124,7 @@ public class Groups<SessionContext, P extends Packet, R>
 	 * @author: tanyaowu
 	 * @创建时间:　2016年11月17日 下午4:10:59
 	 */
-	private void unbind(String groupid, ChannelContext<SessionContext, P, R> channelContext)
+	public void unbind(String groupid, ChannelContext<SessionContext, P, R> channelContext)
 	{
 		ObjWithLock<Set<ChannelContext<SessionContext, P, R>>> set = groupmap.getObj().get(groupid);
 

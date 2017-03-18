@@ -1,0 +1,3 @@
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/tanyaowu/talent-aio/jdk1.8.0_111"
+CLASSPATH=/tanyaowu/talent-aio/jdk1.8.0_111/lib  
+JAVA_HOME=/tanyaowu/talent-aio/jdk1.8.0_111

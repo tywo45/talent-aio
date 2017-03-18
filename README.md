@@ -107,15 +107,23 @@
 		<table>
 			<tr>
 				<td>
-				<img src='https://git.oschina.net/tywo45/talent-aio/raw/master/docs/step/aio-test-step-4.png?dir=0&filepath=docs%2Fstep%2Faio-test-step-4.png&oid=31c3c780c6e80d8521c525532feda72a4e3e8ef3&sha=354aef69440efde33e55b51dbe564d6029339f6b'>
+				<img src='https://git.oschina.net/tywo45/talent-aio/raw/master/docs/step/1.png'>
 				</td>
 			</tr>
 			<tr>
 				<td>
-				<img  src='https://git.oschina.net/tywo45/talent-aio/raw/master/docs/performance/client-11.png?dir=0&filepath=docs%2Fperformance%2Fclient-11.png&oid=ba5c926ed2d6adf8a4710ac9bb58ab821e165d22&sha=d7818edf0a3f9185465f402f9752d230096eb21b'>
+				<img  src='https://git.oschina.net/tywo45/talent-aio/raw/master/docs/performance/client-11.png'>
 				</img>
 				</td>
 			</tr>
+			
+			<tr>
+				<td>
+				<img  src='https://git.oschina.net/tywo45/talent-aio/raw/master/docs/step/2.png'>
+				</img>
+				</td>
+			</tr>
+			
 		</table>
 	</li>
 
@@ -144,7 +152,7 @@
 				<ul>
 					<li>通过群号加入: 428058412</li>
 					<li>点击加入: <a  target="_blank" href="http://shang.qq.com/wpa/qunwpa?idkey=95588b929b2832f606f4deb74a423d61257f3c08b9790ac57c29aebd09364459"><img border="0" src="http://pub.idqqimg.com/wpa/images/group.png" alt="talent-aio技术" title="talent-aio技术"></a></li>
-					<li>扫码加入<div><img src='https://git.oschina.net/tywo45/talent-aio/raw/master/docs/qq-group-2.jpg'/></div></li>
+					<li>扫码加入<div><img src='https://git.oschina.net/tywo45/talent-aio/raw/master/docs/qq-group-2.jpg' style='width:200px;height:250px;' width='200px' height='250px'/></div></li>
 				</ul>
 			</li>
 			<li>
@@ -164,6 +172,16 @@
 			</span>
 			以便随时掌握本项目的动态
 			</li>
+		</ol>
+	</li>
+	
+	
+	
+	
+	<li><h4>注意事项</h4>
+		<ol>
+			<li>请不要在issue中提问题，以免影响watch人员，可以在评论中提问</li>
+			
 		</ol>
 	</li>
 

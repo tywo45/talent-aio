@@ -256,7 +256,7 @@ public class Aio
 	}
 
 	/**
-	 * 解绑群组
+	 * 与所有组解除解绑关系
 	 * @param groupContext
 	 * @param channelContext
 	 *
@@ -267,6 +267,20 @@ public class Aio
 	public static <SessionContext, P extends Packet, R> void unbindGroup(ChannelContext<SessionContext, P, R> channelContext)
 	{
 		channelContext.getGroupContext().getGroups().unbind(channelContext);
+	}
+	
+	/**
+	 * 与指定组解除绑定关系
+	 * @param group
+	 * @param channelContext
+	 *
+	 * @author: tanyaowu
+	 * @创建时间:　2017年3月15日 上午11:07:39
+	 *
+	 */
+	public static <SessionContext, P extends Packet, R> void unbindGroup(String group, ChannelContext<SessionContext, P, R> channelContext)
+	{
+		channelContext.getGroupContext().getGroups().unbind(group, channelContext);
 	}
 
 	/**

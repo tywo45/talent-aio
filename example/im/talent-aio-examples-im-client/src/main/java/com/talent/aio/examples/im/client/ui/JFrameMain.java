@@ -39,6 +39,8 @@ import com.talent.aio.examples.im.common.ImSessionContext;
 import com.talent.aio.examples.im.common.packets.ChatReqBody;
 import com.talent.aio.examples.im.common.packets.ChatType;
 import com.talent.aio.examples.im.common.packets.Command;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 /**
  *
@@ -161,6 +163,18 @@ public class JFrameMain extends javax.swing.JFrame
 		initComponents();
 		
 		
+		
+		
+		Config conf = ConfigFactory.load("app.conf");
+		
+		serverip.setText(conf.getString("server"));
+		port.setText(conf.getString("port"));
+		loginnameSufEndField.setText(conf.getString("client.count"));
+		groupField.setText(conf.getString("group"));
+		msgField.setText(conf.getString("chat.content"));
+		loopcountField.setText(conf.getString("send.count"));
+	
+		
 		//#2ecc71 OK
 		//##f1c40f warn
 		Color okColor = new Color(0x2e, 0xcc, 0x71);
@@ -255,7 +269,7 @@ public class JFrameMain extends javax.swing.JFrame
         sentLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("talent-im-client-1.0.2.v20170303-RELEASE");
+        setTitle("talent-im-client-1.6.6.v20170318-RELEASE");
 
         serverip.setText("127.0.0.1");
         serverip.addActionListener(new java.awt.event.ActionListener() {

@@ -30,20 +30,28 @@ talent-tan家的临时官网: <a href="http://www.talent-tan.com:9292/" target="_blank
 <li>
 	server和client各增加stop()方法，用于停止服务和释放资源
 </li>
-<li>
-	IM实例支持websocket，为以后的web监控功能打下基础 ( 作者厚颜无耻地违背了当初不实现websocket的决定，感谢<a href='https://git.oschina.net/generallycloud/baseio'  target="_blank">baseio</a>作者对本项目的支持 )
-</li>
+
 <li>
 	优化重连(1.0.1版本已经优化过一次，1.0.3还将继续优化)
 </li>
 <li>
-	client增加异步连接
+	client增加异步连接(就是连接服务器时并不等待连接建立好后再往下执行)
 </li>
 <li>
-	各种变态测试发现的零碎问题修复
+	各种变态测试发现的零碎问题修复(譬如同时连2万个连接，又马上断开，又马上连上，如此反复，考验服务器释放资源的能力以及正确性，也考验客户端重连能力以及重新管理连接的能力)
 </li>
 <li>
 	资源读操作和写操作时各自的锁优化
+</li>
+<li>
+	目录调整（不影响使用）
+</li>
+<li>
+	IM实例支持websocket，为以后的web监控功能打下基础 ( 作者厚颜无耻地违背了当初不实现websocket的决定，感谢<a href='https://git.oschina.net/generallycloud/baseio'  target="_blank">baseio</a>作者对本项目的支持 )，下图是个测试界面，后续会优化
+	<img src='https://git.oschina.net/tywo45/talent-aio/raw/master/docs/websocket-1.png'>
+	<br/>对比一下老版的swing界面
+	<img src='https://git.oschina.net/tywo45/talent-aio/raw/master/docs/performance/client-11.png'>
+	
 </li>
 
 

@@ -1,14 +1,3 @@
-/**
- * **************************************************************************
- *
- * @说明: 
- * @项目名称: talent-aio-examples-server
- *
- * @author: tanyaowu 
- * @创建时间: 2016年11月17日 下午5:59:24
- *
- * **************************************************************************
- */
 package com.talent.aio.examples.im.client;
 
 import java.io.IOException;
@@ -55,8 +44,8 @@ public class ImClientStarter
 		aioClientHandler = new ImClientAioHandler();
 		aioListener = new ImClientAioListener();
 		clientGroupContext = new ClientGroupContext<>(aioClientHandler, aioListener, reconnConf);
-		clientGroupContext.setReadBufferSize(2048);
-		clientGroupContext.setByteOrder(ByteOrder.BIG_ENDIAN);
+//		clientGroupContext.setReadBufferSize(2048);
+//		clientGroupContext.setByteOrder(ByteOrder.BIG_ENDIAN);
 		clientGroupContext.setEncodeCareWithChannelContext(true);
 		aioClient = new AioClient<>(clientGroupContext);
 	}

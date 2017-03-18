@@ -140,7 +140,7 @@ public class ServerGroupContext<SessionContext, P extends Packet, R> extends Gro
 							
 							readLock.unlock();
 							
-							if (log.isInfoEnabled())
+							if (log.isErrorEnabled())
 							{
 //								int connecteds = ServerGroupContext.this.getConnecteds().getSetWithLock().getObj().size();
 								
@@ -151,18 +151,32 @@ public class ServerGroupContext<SessionContext, P extends Packet, R> extends Gro
 									groups = objwithlock.getObj().size();
 								}
 								
-								log.info("[{}]:[{}]: 当前连接个数:{}, 群组(g):{}, 共接受连接:{}, 一共关闭过的连接个数:{}, 已接收消息:({}p)({}b), 已处理消息:{}, 已发送消息:({}p)({}b)", SystemTimer.currentTimeMillis(), id,
+								log.error("[{}]:[{}]: 当前连接个数:{}, 群组(g):{}, 共接受连接:{}, 一共关闭过的连接个数:{}, 已接收消息:({}p)({}b), 已处理消息:{}, 已发送消息:({}p)({}b)", SystemTimer.currentTimeMillis(), id,
 										set.size(), groups, serverGroupStat.getAccepted().get(), serverGroupStat.getClosed().get(), serverGroupStat.getReceivedPacket().get(),
 										serverGroupStat.getReceivedBytes().get(), serverGroupStat.getHandledPacket().get(), serverGroupStat.getSentPacket().get(),
 										serverGroupStat.getSentBytes().get());
 							}
 							
-							if (log.isInfoEnabled())
+							//打印各集合信息
+							if (log.isErrorEnabled())
+							{							
+								log.error("clientNodes:{},connections:{},connecteds:{},closeds:{},groups:[channelmap:{}, groupmap:{}],users:{},syns:{}", 
+										ServerGroupContext.this.clientNodes.getMap().getObj().size(),
+										ServerGroupContext.this.connections.getSetWithLock().getObj().size(),
+										ServerGroupContext.this.connecteds.getSetWithLock().getObj().size(),
+										ServerGroupContext.this.closeds.getSetWithLock().getObj().size(),
+										ServerGroupContext.this.groups.getChannelmap().getObj().size(), ServerGroupContext.this.groups.getGroupmap().getObj().size(),
+										ServerGroupContext.this.users.getMap().getObj().size(),
+										ServerGroupContext.this.syns.getMap().getObj().size()
+										);
+							}
+							
+							if (log.isErrorEnabled())
 							{
 								long end = SystemTimer.currentTimeMillis();
 								long iv1 = start1 - start;
 								long iv = end - start1;
-								log.info("检查心跳, 共{}个连接, 取锁耗时{}ms, 循环耗时{}ms, 心跳时间:{}", count, iv1, iv, heartbeatTimeout);
+								log.error("检查心跳, 共{}个连接, 取锁耗时{}ms, 循环耗时{}ms, 心跳时间:{}", count, iv1, iv, heartbeatTimeout);
 							}
 							Thread.sleep(sleeptime);
 						} catch (Exception e)
